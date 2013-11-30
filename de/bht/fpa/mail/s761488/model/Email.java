@@ -23,25 +23,15 @@ public class Email {
 		DateFormat.FULL,
 		DateFormat.SHORT,
 		Locale.GERMANY);
-	@XmlElement(required = true)
 	private String sender;
-	@XmlElement(required = true)
 	private ArrayList<String> receiverTo;
-	@XmlElement
 	private ArrayList<String> receiverCC;
-	@XmlElement
 	private ArrayList<String> receiverBCC;
-	@XmlElement
 	private String subject;
-	@XmlElement
 	private String text;
-	@XmlElement
 	private Importance importance;
-	@XmlElement
 	private Date sent;
-	@XmlElement
 	private Date received;
-	@XmlElement
 	private boolean read;
 
 	public Email() {

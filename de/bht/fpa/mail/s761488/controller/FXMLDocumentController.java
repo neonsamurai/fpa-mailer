@@ -7,11 +7,13 @@ package de.bht.fpa.mail.s761488.controller;
 
 import de.bht.fpa.mail.s761488.applicationLogic.EmailManager;
 import de.bht.fpa.mail.s761488.model.Component;
+import de.bht.fpa.mail.s761488.model.Email;
 import de.bht.fpa.mail.s761488.model.Folder;
 import de.bht.fpa.mail.s761488.model.FolderManagerIF;
 import java.io.File;
 import java.io.FileFilter;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
 import javafx.beans.value.ChangeListener;
@@ -83,6 +85,24 @@ public class FXMLDocumentController implements Initializable {
 				if (t1 != null) {
 					TreeItem treeNode = (TreeItem) t1;
 					updateTreeNode(treeNode);
+					showEmailsInNode(treeNode);
+				}
+			}
+
+			private void showEmailsInNode(TreeItem treeNode) {
+				Folder folder = (Folder) treeNode.getValue();
+				List emails = folder.getEmails();
+				System.out.println("Selected directory: " + folder.getPath());
+				System.out.println("Number of Emails: " + emails.size());
+				for (Iterator it = emails.iterator(); it.hasNext();) {
+					Email email = (Email) it.next();
+					final String s = " | ";
+					System.out.println(
+						"[Email: "
+							+ email.getSender() + s
+							+ email.getReceived() + s
+							+ email.getSubject()
+							+ "]");
 				}
 			}
 		};
