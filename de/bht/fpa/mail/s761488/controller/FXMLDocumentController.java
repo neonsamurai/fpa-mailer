@@ -12,7 +12,6 @@ import de.bht.fpa.mail.s761488.model.FolderManagerIF;
 import java.io.File;
 import java.io.FileFilter;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
 import javafx.beans.value.ChangeListener;
@@ -81,30 +80,10 @@ public class FXMLDocumentController implements Initializable {
 
 			@Override
 			public void changed(ObservableValue ov, Object t, Object t1) {
-				TreeItem treeNode = (TreeItem) t1;
-				Component node = (Component) treeNode.getValue();
-				// If node is an empty Folder
-				if (node.isExpandable() && 
-					node.getComponents().isEmpty()) {
-					Folder folder = (Folder) node;
-					// delete DUMMY TreeItem
-					if(!treeNode.getChildren().isEmpty()){
-						treeNode.getChildren().remove(0);
-					}
-					folderManager.loadContent(folder);
-					loadSubtree(treeNode, folder);
+				if (t1 != null) {
+					TreeItem treeNode = (TreeItem) t1;
+					updateTreeNode(treeNode);
 				}
-				List<Component> content = node.getComponents();
-
-				System.out.println(node.getPath());
-				System.out.println("Contains " + content.size() + " emails.");
-				for (Component component : content) {
-					File file = new File(component.getPath());
-					if(file.isFile()) {
-						System.out.println(file.getName());
-					}
-				}
-
 			}
 		};
 
@@ -117,7 +96,7 @@ public class FXMLDocumentController implements Initializable {
 		fileExplorer.setRoot(rootNode);
 		fileExplorer.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		fileExplorer.getSelectionModel().selectedItemProperty().addListener(selectedChanged);
-		
+
 		// populate Folder model with root level items
 		folderManager.loadContent(rootFolder);
 		// ...and update TreeView  with folder children
@@ -129,7 +108,7 @@ public class FXMLDocumentController implements Initializable {
 			TreeItem newNode;
 			newNode = new TreeItem(node);
 
-			// Only add dummy TreeItem if node id a folder and has children.
+			// Only add dummy TreeItem if node is a folder and has children.
 			if (node.isExpandable() && hasChildFolders(node)) {
 				newNode.addEventHandler(TreeItem.branchExpandedEvent(), handleTreeExpansion);
 				newNode.getChildren().add(new TreeItem("DUMMY"));
@@ -155,17 +134,23 @@ public class FXMLDocumentController implements Initializable {
 		return hasChildFolders;
 	}
 
+	private void updateTreeNode(TreeItem item) {
+		Folder folder = (Folder) item.getValue();
+		if (folder.getComponents().isEmpty()) {
+			if (hasChildFolders(folder)) {
+				item.getChildren().remove(0); // delete DUMMY TreeItem
+			}
+			folderManager.loadContent(folder);
+			loadSubtree(item, folder);
+		}
+	}
+
 	private class HandleTreeEvents implements EventHandler {
 
 		@Override
 		public void handle(Event t) {
 			TreeItem item = (TreeItem) t.getSource();
-			Folder folder = (Folder) item.getValue();
-			if (folder.getComponents().isEmpty()) {
-				item.getChildren().remove(0); // delete DUMMY TreeItem
-				folderManager.loadContent(folder);
-				loadSubtree(item, folder);
-			}
+			updateTreeNode(item);
 
 		}
 	}
