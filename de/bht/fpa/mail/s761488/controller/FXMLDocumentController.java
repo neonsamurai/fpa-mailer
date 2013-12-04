@@ -18,14 +18,18 @@ import java.util.List;
 import java.util.ResourceBundle;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -39,7 +43,19 @@ public class FXMLDocumentController implements Initializable {
 
 	@FXML
 	TreeView<Component> fileExplorer;
-
+	
+	@FXML
+	TableView<Email> emailListTable;
+	private ObservableList<Email> emailList;
+	private TableColumn<Email,String> 
+		importanceCol, 
+		receivedCol,
+		readCol,
+		senderCol,
+		recepientsCol,
+		subjectCol;
+	
+	
 	@FXML
 	MenuItem menuFileSelectRootDirectory;
 	@FXML
@@ -54,6 +70,7 @@ public class FXMLDocumentController implements Initializable {
 
 	final DirectoryChooser newRootChooser = new DirectoryChooser();
 	private ChangeListener selectedChanged;
+	
 
 	/**
 	 * Initializes the controller class.
@@ -65,6 +82,7 @@ public class FXMLDocumentController implements Initializable {
 	public void initialize(URL url, ResourceBundle rb) {
 		configureFolderExplorer(new File(System.getProperty("user.home")));
 		configureMenue();
+		//configureEmailList(rootFolder);
 	}
 
 	private void configureFolderExplorer(File root) {
@@ -115,7 +133,8 @@ public class FXMLDocumentController implements Initializable {
 		// Init TreeView 
 		fileExplorer.setRoot(rootNode);
 		fileExplorer.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-		fileExplorer.getSelectionModel().selectedItemProperty().addListener(selectedChanged);
+		fileExplorer.getSelectionModel().selectedItemProperty()
+			.addListener(selectedChanged);
 
 		// populate Folder model with root level items
 		folderManager.loadContent(rootFolder);
@@ -130,7 +149,8 @@ public class FXMLDocumentController implements Initializable {
 
 			// Only add dummy TreeItem if node is a folder and has children.
 			if (node.isExpandable() && hasChildFolders(node)) {
-				newNode.addEventHandler(TreeItem.branchExpandedEvent(), handleTreeExpansion);
+				newNode.addEventHandler(
+					TreeItem.branchExpandedEvent(), handleTreeExpansion);
 				newNode.getChildren().add(new TreeItem("DUMMY"));
 			} else {
 			}
@@ -163,6 +183,28 @@ public class FXMLDocumentController implements Initializable {
 			folderManager.loadContent(folder);
 			loadSubtree(item, folder);
 		}
+	}
+
+	private void configureEmailList(Folder folder) {
+		emailList = getEmailList(folder);
+		emailListTable.setItems(emailList);
+		importanceCol = new TableColumn<>("IMPORTANCE");
+		importanceCol.setCellValueFactory(new PropertyValueFactory("importance"));
+		receivedCol = new TableColumn<>("Received");
+		receivedCol.setCellFactory(new PropertyValueFactory("received"));
+		readCol = new TableColumn<>("Read");
+		readCol.setCellValueFactory(new PropertyValueFactory("read"));
+		senderCol = new TableColumn<>("Sender");
+		senderCol.setCellValueFactory(new PropertyValueFactory("sender"));
+		recepientsCol = new TableColumn<>("Recepients");
+		recepientsCol.setCellValueFactory(new PropertyValueFactory("recepients"));
+		subjectCol = new TableColumn<>("subject");
+		subjectCol.setCellValueFactory(new PropertyValueFactory("subject"));
+		
+	}
+
+	private ObservableList<Email> getEmailList(Folder rootFolder) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	private class HandleTreeEvents implements EventHandler {
@@ -210,7 +252,8 @@ public class FXMLDocumentController implements Initializable {
 			Stage chooseRootStage = new Stage(StageStyle.UTILITY);
 			chooseRootStage.setTitle("Select new Root");
 			File newRootDirectory = newRootChooser.showDialog(chooseRootStage);
-			fileExplorer.getSelectionModel().selectedItemProperty().removeListener(selectedChanged);
+			fileExplorer.getSelectionModel().selectedItemProperty()
+				.removeListener(selectedChanged);
 			configureFolderExplorer(newRootDirectory);
 		}
 
