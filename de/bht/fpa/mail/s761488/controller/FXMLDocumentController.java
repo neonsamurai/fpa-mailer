@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -43,19 +44,17 @@ public class FXMLDocumentController implements Initializable {
 
 	@FXML
 	TreeView<Component> fileExplorer;
-	
+
 	@FXML
 	TableView<Email> emailListTable;
 	private ObservableList<Email> emailList;
-	private TableColumn<Email,String> 
-		importanceCol, 
+	private TableColumn<Email, String> importanceCol,
 		receivedCol,
 		readCol,
 		senderCol,
 		recepientsCol,
 		subjectCol;
-	
-	
+
 	@FXML
 	MenuItem menuFileSelectRootDirectory;
 	@FXML
@@ -70,7 +69,6 @@ public class FXMLDocumentController implements Initializable {
 
 	final DirectoryChooser newRootChooser = new DirectoryChooser();
 	private ChangeListener selectedChanged;
-	
 
 	/**
 	 * Initializes the controller class.
@@ -82,7 +80,7 @@ public class FXMLDocumentController implements Initializable {
 	public void initialize(URL url, ResourceBundle rb) {
 		configureFolderExplorer(new File(System.getProperty("user.home")));
 		configureMenue();
-		//configureEmailList(rootFolder);
+		configureEmailList(rootFolder);
 	}
 
 	private void configureFolderExplorer(File root) {
@@ -117,10 +115,10 @@ public class FXMLDocumentController implements Initializable {
 					final String s = " | ";
 					System.out.println(
 						"[Email: "
-							+ email.getSender() + s
-							+ email.getReceived() + s
-							+ email.getSubject()
-							+ "]");
+						+ email.getSender() + s
+						+ email.getReceived() + s
+						+ email.getSubject()
+						+ "]");
 				}
 			}
 		};
@@ -142,6 +140,30 @@ public class FXMLDocumentController implements Initializable {
 		loadSubtree(rootNode, rootFolder);
 	}
 
+	private void configureMenue() {
+		MenuEventHandler myMenuEventHandler = new MenuEventHandler();
+		menuFileSelectRootDirectory.setOnAction(myMenuEventHandler);
+	}
+
+	private void configureEmailList(Folder folder) {
+		emailList = FXCollections.observableArrayList();
+		emailList.addAll(folder.getEmails());
+		emailListTable.setItems(emailList);
+		importanceCol = new TableColumn<>("IMPORTANCE");
+		importanceCol.setCellValueFactory(new PropertyValueFactory("importance"));
+		receivedCol = new TableColumn<>("Received");
+		receivedCol.setCellFactory(new PropertyValueFactory("received"));
+		readCol = new TableColumn<>("Read");
+		readCol.setCellValueFactory(new PropertyValueFactory("read"));
+		senderCol = new TableColumn<>("Sender");
+		senderCol.setCellValueFactory(new PropertyValueFactory("sender"));
+		recepientsCol = new TableColumn<>("Recepients");
+		recepientsCol.setCellValueFactory(new PropertyValueFactory("recepients"));
+		subjectCol = new TableColumn<>("subject");
+		subjectCol.setCellValueFactory(new PropertyValueFactory("subject"));
+
+	}
+
 	private void loadSubtree(TreeItem insertNode, Folder folder) {
 		for (Component node : folder.getComponents()) {
 			TreeItem newNode;
@@ -161,11 +183,6 @@ public class FXMLDocumentController implements Initializable {
 		}
 	}
 
-	private void configureMenue() {
-		MenuEventHandler myMenuEventHandler = new MenuEventHandler();
-		menuFileSelectRootDirectory.setOnAction(myMenuEventHandler);
-	}
-
 	private boolean hasChildFolders(Component node) {
 		File folder;
 		folder = new File(node.getPath());
@@ -182,29 +199,13 @@ public class FXMLDocumentController implements Initializable {
 			}
 			folderManager.loadContent(folder);
 			loadSubtree(item, folder);
+			updateEmailList(folder);
 		}
 	}
 
-	private void configureEmailList(Folder folder) {
-		emailList = getEmailList(folder);
-		emailListTable.setItems(emailList);
-		importanceCol = new TableColumn<>("IMPORTANCE");
-		importanceCol.setCellValueFactory(new PropertyValueFactory("importance"));
-		receivedCol = new TableColumn<>("Received");
-		receivedCol.setCellFactory(new PropertyValueFactory("received"));
-		readCol = new TableColumn<>("Read");
-		readCol.setCellValueFactory(new PropertyValueFactory("read"));
-		senderCol = new TableColumn<>("Sender");
-		senderCol.setCellValueFactory(new PropertyValueFactory("sender"));
-		recepientsCol = new TableColumn<>("Recepients");
-		recepientsCol.setCellValueFactory(new PropertyValueFactory("recepients"));
-		subjectCol = new TableColumn<>("subject");
-		subjectCol.setCellValueFactory(new PropertyValueFactory("subject"));
-		
-	}
-
-	private ObservableList<Email> getEmailList(Folder rootFolder) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	private void updateEmailList(Folder folder) {
+		emailList.clear();
+		emailList.addAll(folder.getEmails());
 	}
 
 	private class HandleTreeEvents implements EventHandler {
