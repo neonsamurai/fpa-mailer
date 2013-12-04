@@ -46,7 +46,8 @@ public class EmailManager implements FolderManagerIF {
 
 				FileFilter xmlFilter;
 				xmlFilter = new XMLFileFilter();
-
+				
+				// Prepare our xml to POJO converter
 				JAXBContext jc;
 				jc = JAXBContext.newInstance(Email.class);
 				Unmarshaller unmarshaller;
@@ -66,6 +67,8 @@ public class EmailManager implements FolderManagerIF {
 						email = (Email) unmarshaller.unmarshal(item);
 						node.addEmail(email);
 						
+						// This is added to show when and which xml is added to
+						// a node.
 						final String s = " | ";
 						System.out.println(
 							"(Adding) [Email: "
