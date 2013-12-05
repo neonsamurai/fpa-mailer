@@ -13,10 +13,15 @@ import de.bht.fpa.mail.s761488.model.Folder;
 import de.bht.fpa.mail.s761488.model.FolderManagerIF;
 import java.io.File;
 import java.io.FileFilter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -35,6 +40,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Callback;
 
 /**
  * FXML Controller class
@@ -48,7 +54,7 @@ public class FXMLDocumentController implements Initializable {
 
 	@FXML
 	TableView<Email> emailListTable;
-	
+
 	private ObservableList<Email> emailList;
 	private TableColumn<Email, String> importanceCol,
 	    receivedCol,
@@ -127,17 +133,23 @@ public class FXMLDocumentController implements Initializable {
 		emailList.addAll(folder.getEmails());
 		emailListTable.setItems(emailList);
 		importanceCol = new TableColumn<>("IMPORTANCE");
-		importanceCol.setCellValueFactory(new PropertyValueFactory("importance"));
+		importanceCol.setCellValueFactory(
+		    new ObjectPropertyValueFactory("importance"));
 		receivedCol = new TableColumn<>("Received");
-		receivedCol.setCellFactory(new PropertyValueFactory("received"));
+		receivedCol.setCellValueFactory(
+		    new ObjectPropertyValueFactory("received"));
 		readCol = new TableColumn<>("Read");
-		readCol.setCellValueFactory(new PropertyValueFactory("read"));
+		readCol.setCellValueFactory(
+		    new ObjectPropertyValueFactory("read"));
 		senderCol = new TableColumn<>("Sender");
-		senderCol.setCellValueFactory(new PropertyValueFactory("sender"));
+		senderCol.setCellValueFactory(
+		    new ObjectPropertyValueFactory("sender"));
 		recepientsCol = new TableColumn<>("Recepients");
-		recepientsCol.setCellValueFactory(new PropertyValueFactory("recepients"));
+		recepientsCol.setCellValueFactory(
+		    new ObjectPropertyValueFactory("receiver"));
 		subjectCol = new TableColumn<>("subject");
-		subjectCol.setCellValueFactory(new PropertyValueFactory("subject"));
+		subjectCol.setCellValueFactory(
+		    new ObjectPropertyValueFactory("subject"));
 		emailListTable.getColumns().setAll(
 		    importanceCol,
 		    receivedCol,
@@ -159,7 +171,7 @@ public class FXMLDocumentController implements Initializable {
 				// if node is a folder and has subfolders.
 				if (node.isExpandable()) {
 					newNode.addEventHandler(
-					    TreeItem.branchExpandedEvent(), 
+					    TreeItem.branchExpandedEvent(),
 					    handleTreeExpansion);
 					newNode.getChildren().
 					    add(new TreeItem("DUMMY"));
@@ -174,7 +186,7 @@ public class FXMLDocumentController implements Initializable {
 		if (folder.getComponents().isEmpty()) {
 			folderManager.loadContent(folder);
 		}
-		
+
 		// Only remove the DUMMY TreeItem, if it is really there.
 		if (folder.isExpandable()
 		    && item.getChildren().size() == 1) {
@@ -182,7 +194,7 @@ public class FXMLDocumentController implements Initializable {
 			thisItem = (TreeItem) item.getChildren().get(0);
 			if (thisItem.getValue().toString().equals("DUMMY")) {
 				// delete DUMMY TreeItem
-				item.getChildren().remove(0); 
+				item.getChildren().remove(0);
 			}
 		}
 
@@ -248,6 +260,61 @@ public class FXMLDocumentController implements Initializable {
 
 		private void showRootHistory() {
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+	}
+
+	private static class ObjectPropertyValueFactory implements
+	    Callback<TableColumn.CellDataFeatures<Email, String>, 
+	    ObservableValue<String>> {
+
+		private final String propertyName;
+		private Method method;
+
+		private ObjectPropertyValueFactory(String propertyName) {
+			char[] propertyNameArr = propertyName.toCharArray();
+			propertyNameArr[0] = Character.
+			    toUpperCase(propertyNameArr[0]);
+
+			this.propertyName = new String(propertyNameArr);
+		}
+
+		@Override
+		public ObservableValue<String> 
+			call(TableColumn.CellDataFeatures<Email, String> p) {
+
+			try {
+				method = p.getValue().getClass().
+				    getMethod("get" + propertyName);
+				System.out.println(method);
+			} catch (NoSuchMethodException ex) {
+				Logger.getLogger(FXMLDocumentController.class.
+				    getName()).log(Level.SEVERE, null, ex);
+			} catch (SecurityException ex) {
+				Logger.getLogger(FXMLDocumentController.class.
+				    getName()).log(Level.SEVERE, null, ex);
+			}
+			if (p.getValue() != null) {
+				try {	
+					Object propertyObject;
+					propertyObject = method.invoke(
+						p.getValue());
+					return new SimpleStringProperty(
+					    propertyObject.toString());
+				} catch (IllegalAccessException ex) {
+					Logger.getLogger(FXMLDocumentController.
+					    class.getName()).
+					    log(Level.SEVERE, null, ex);
+				} catch (IllegalArgumentException ex) {
+					Logger.getLogger(FXMLDocumentController.
+					    class.getName()).
+					    log(Level.SEVERE, null, ex);
+				} catch (InvocationTargetException ex) {
+					Logger.getLogger(FXMLDocumentController.
+					    class.getName()).
+					    log(Level.SEVERE, null, ex);
+				}
+			}
+			return new SimpleStringProperty("<no value>");
 		}
 	}
 }
