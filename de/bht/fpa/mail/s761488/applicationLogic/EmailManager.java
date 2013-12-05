@@ -7,9 +7,9 @@ package de.bht.fpa.mail.s761488.applicationLogic;
 
 import de.bht.fpa.mail.s761488.model.Component;
 import de.bht.fpa.mail.s761488.model.Email;
+import de.bht.fpa.mail.s761488.model.EmailManagerIF;
 import de.bht.fpa.mail.s761488.model.FileElement;
 import de.bht.fpa.mail.s761488.model.Folder;
-import de.bht.fpa.mail.s761488.model.FolderManagerIF;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.logging.Level;
@@ -22,26 +22,14 @@ import javax.xml.bind.Unmarshaller;
  *
  * @author tim
  */
-public class EmailManager implements FolderManagerIF {
-
-	private final Folder rootFolder;
-	private final File rootPath;
-
-	public EmailManager(File path) {
-		this.rootPath = path;
-		this.rootFolder = new Folder(path, true);
-	}
-
-	public Folder getRootFolder() {
-		return rootFolder;
-	}
+public class EmailManager implements EmailManagerIF {
 
 	@Override
-	public void loadContent(Folder node) {
-		// Only load content if it hasn't already been loaded.
-		if (node.getComponents().isEmpty()) {
+	public void loadEmails(Folder folder) {
+		// Only load emails if they havn't already been loaded.
+		if (folder.getEmails().isEmpty()) {
 			try {
-				File nodePath = new File(node.getPath());
+				File nodePath = new File(folder.getPath());
 
 				FileFilter xmlFilter;
 				xmlFilter = new XMLFileFilter();
@@ -56,15 +44,15 @@ public class EmailManager implements FolderManagerIF {
 					Component newNode;
 					if (item.isDirectory()) {
 						newNode = new Folder(item, true);
-						node.addComponent(newNode);
+						folder.addComponent(newNode);
 					}
 					// Only load XML files
 					if (item.isFile() && xmlFilter.accept(item)) {
 						newNode = new FileElement(item);
-						node.addComponent(newNode);
+						folder.addComponent(newNode);
 						Email email;
 						email = (Email) unmarshaller.unmarshal(item);
-						node.addEmail(email);
+						folder.addEmail(email);
 
 						// This is added to show when and which xml is added to
 						// a node.
@@ -82,11 +70,6 @@ public class EmailManager implements FolderManagerIF {
 				Logger.getLogger(EmailManager.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		}
-	}
-
-	@Override
-	public Folder getTopFolder() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	private static class XMLFileFilter implements FileFilter {

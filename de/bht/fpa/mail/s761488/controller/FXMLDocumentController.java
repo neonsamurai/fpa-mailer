@@ -6,6 +6,7 @@
 package de.bht.fpa.mail.s761488.controller;
 
 import de.bht.fpa.mail.s761488.applicationLogic.EmailManager;
+import de.bht.fpa.mail.s761488.applicationLogic.FileManager;
 import de.bht.fpa.mail.s761488.model.Component;
 import de.bht.fpa.mail.s761488.model.Email;
 import de.bht.fpa.mail.s761488.model.Folder;
@@ -49,11 +50,11 @@ public class FXMLDocumentController implements Initializable {
 	TableView<Email> emailListTable;
 	private ObservableList<Email> emailList;
 	private TableColumn<Email, String> importanceCol,
-		receivedCol,
-		readCol,
-		senderCol,
-		recepientsCol,
-		subjectCol;
+	    receivedCol,
+	    readCol,
+	    senderCol,
+	    recepientsCol,
+	    subjectCol;
 
 	@FXML
 	MenuItem menuFileSelectRootDirectory;
@@ -69,6 +70,7 @@ public class FXMLDocumentController implements Initializable {
 
 	final DirectoryChooser newRootChooser = new DirectoryChooser();
 	private ChangeListener selectedChanged;
+	private EmailManager emailManager;
 
 	/**
 	 * Initializes the controller class.
@@ -88,40 +90,14 @@ public class FXMLDocumentController implements Initializable {
 		rootPath = root;
 
 		// get Manager for our folders
-		folderManager = new EmailManager(rootPath);
-
+		folderManager = new FileManager(rootPath);
+		// get Manager for our emails
+		emailManager = new EmailManager();
 		// register eventHandlers
 		handleTreeExpansion = new HandleTreeEvents();
 
 		// register ChangeListeners
-		selectedChanged = new ChangeListener() {
-
-			@Override
-			public void changed(ObservableValue ov, Object t, Object t1) {
-				if (t1 != null) {
-					TreeItem treeNode = (TreeItem) t1;
-					updateTreeNode(treeNode);
-					showEmailsInNode(treeNode);
-				}
-			}
-
-			private void showEmailsInNode(TreeItem treeNode) {
-				Folder folder = (Folder) treeNode.getValue();
-				List emails = folder.getEmails();
-				System.out.println("Selected directory: " + folder.getPath());
-				System.out.println("Number of Emails: " + emails.size());
-				for (Iterator it = emails.iterator(); it.hasNext();) {
-					Email email = (Email) it.next();
-					final String s = " | ";
-					System.out.println(
-						"[Email: "
-						+ email.getSender() + s
-						+ email.getReceived() + s
-						+ email.getSubject()
-						+ "]");
-				}
-			}
-		};
+		selectedChanged = new HandleTreeSelectionEvents();
 
 		// get root tree item
 		rootFolder = folderManager.getTopFolder();
@@ -132,7 +108,7 @@ public class FXMLDocumentController implements Initializable {
 		fileExplorer.setRoot(rootNode);
 		fileExplorer.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		fileExplorer.getSelectionModel().selectedItemProperty()
-			.addListener(selectedChanged);
+		    .addListener(selectedChanged);
 
 		// populate Folder model with root level items
 		folderManager.loadContent(rootFolder);
@@ -165,47 +141,64 @@ public class FXMLDocumentController implements Initializable {
 	}
 
 	private void loadSubtree(TreeItem insertNode, Folder folder) {
-		for (Component node : folder.getComponents()) {
-			TreeItem newNode;
-			newNode = new TreeItem(node);
+		// Only load subtree if it hasn't already been loaded!
+		if (insertNode.getChildren().size() == 0) {
+			for (Component node : folder.getComponents()) {
+				TreeItem newNode;
+				newNode = new TreeItem(node);
 
-			// Only add dummy TreeItem if node is a folder and has children.
-			if (node.isExpandable() && hasChildFolders(node)) {
-				newNode.addEventHandler(
-					TreeItem.branchExpandedEvent(), handleTreeExpansion);
-				newNode.getChildren().add(new TreeItem("DUMMY"));
-			} else {
-			}
-			// Only insert node if expandable.
-			if (node.isExpandable()) {
+				// Only add dummy TreeItem if node is a folder 
+				// and has children.
+				if (node.isExpandable()) {
+					newNode.addEventHandler(
+					    TreeItem.branchExpandedEvent(), 
+					    handleTreeExpansion);
+					newNode.getChildren().
+					    add(new TreeItem("DUMMY"));
+				}
 				insertNode.getChildren().add(newNode);
 			}
 		}
 	}
 
-	private boolean hasChildFolders(Component node) {
-		File folder;
-		folder = new File(node.getPath());
-		DirectoryFilter filter = new DirectoryFilter();
-		boolean hasChildFolders = folder.listFiles(filter).length > 0;
-		return hasChildFolders;
-	}
-
 	private void updateTreeNode(TreeItem item) {
 		Folder folder = (Folder) item.getValue();
 		if (folder.getComponents().isEmpty()) {
-			if (hasChildFolders(folder)) {
+			folderManager.loadContent(folder);
+		}
+
+		if (folder.isExpandable()
+		    && item.getChildren().size() == 1) {
+			TreeItem thisItem;
+			thisItem = (TreeItem) item.getChildren().get(0);
+			System.out.println(thisItem.getValue().toString());
+			if (thisItem.getValue().toString().equals("DUMMY")) {
 				item.getChildren().remove(0); // delete DUMMY TreeItem
 			}
-			folderManager.loadContent(folder);
-			loadSubtree(item, folder);
-			updateEmailList(folder);
 		}
+
+		loadSubtree(item, folder);
 	}
 
 	private void updateEmailList(Folder folder) {
 		emailList.clear();
 		emailList.addAll(folder.getEmails());
+	}
+
+	private class HandleTreeSelectionEvents implements ChangeListener {
+
+		@Override
+		public void changed(ObservableValue ov, Object t, Object t1) {
+			if (t1 != null) {
+				TreeItem treeNode = (TreeItem) t1;
+				Folder folder;
+				folder = (Folder) treeNode.getValue();
+				emailManager.loadEmails(folder);
+				System.out.println("Selected directory: " + folder.getPath());
+				System.out.println("Number of Emails: " + folder.getEmails().size());
+				updateEmailList(folder);
+			}
+		}
 	}
 
 	private class HandleTreeEvents implements EventHandler {
@@ -216,20 +209,6 @@ public class FXMLDocumentController implements Initializable {
 			updateTreeNode(item);
 
 		}
-	}
-
-	private class DirectoryFilter implements FileFilter {
-
-		@Override
-		public boolean accept(File pathname) {
-			return pathname.isDirectory();
-		}
-
-		public String getDescription() {
-			return "Directory";
-
-		}
-
 	}
 
 	private class MenuEventHandler implements EventHandler {
@@ -254,7 +233,7 @@ public class FXMLDocumentController implements Initializable {
 			chooseRootStage.setTitle("Select new Root");
 			File newRootDirectory = newRootChooser.showDialog(chooseRootStage);
 			fileExplorer.getSelectionModel().selectedItemProperty()
-				.removeListener(selectedChanged);
+			    .removeListener(selectedChanged);
 			configureFolderExplorer(newRootDirectory);
 		}
 
