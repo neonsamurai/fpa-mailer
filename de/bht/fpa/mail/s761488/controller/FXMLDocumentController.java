@@ -48,6 +48,7 @@ public class FXMLDocumentController implements Initializable {
 
 	@FXML
 	TableView<Email> emailListTable;
+	
 	private ObservableList<Email> emailList;
 	private TableColumn<Email, String> importanceCol,
 	    receivedCol,
@@ -137,6 +138,13 @@ public class FXMLDocumentController implements Initializable {
 		recepientsCol.setCellValueFactory(new PropertyValueFactory("recepients"));
 		subjectCol = new TableColumn<>("subject");
 		subjectCol.setCellValueFactory(new PropertyValueFactory("subject"));
+		emailListTable.getColumns().setAll(
+		    importanceCol,
+		    receivedCol,
+		    readCol,
+		    senderCol,
+		    recepientsCol,
+		    subjectCol);
 
 	}
 
@@ -147,8 +155,8 @@ public class FXMLDocumentController implements Initializable {
 				TreeItem newNode;
 				newNode = new TreeItem(node);
 
-				// Only add dummy TreeItem if node is a folder 
-				// and has children.
+				// Only add dummy TreeItem and event handler 
+				// if node is a folder and has subfolders.
 				if (node.isExpandable()) {
 					newNode.addEventHandler(
 					    TreeItem.branchExpandedEvent(), 
@@ -166,14 +174,15 @@ public class FXMLDocumentController implements Initializable {
 		if (folder.getComponents().isEmpty()) {
 			folderManager.loadContent(folder);
 		}
-
+		
+		// Only remove the DUMMY TreeItem, if it is really there.
 		if (folder.isExpandable()
 		    && item.getChildren().size() == 1) {
 			TreeItem thisItem;
 			thisItem = (TreeItem) item.getChildren().get(0);
-			System.out.println(thisItem.getValue().toString());
 			if (thisItem.getValue().toString().equals("DUMMY")) {
-				item.getChildren().remove(0); // delete DUMMY TreeItem
+				// delete DUMMY TreeItem
+				item.getChildren().remove(0); 
 			}
 		}
 
