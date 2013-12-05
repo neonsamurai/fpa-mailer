@@ -32,7 +32,6 @@ public class EmailManager implements FolderManagerIF {
 		this.rootFolder = new Folder(path, true);
 	}
 
-	@Override
 	public Folder getRootFolder() {
 		return rootFolder;
 	}
@@ -46,7 +45,7 @@ public class EmailManager implements FolderManagerIF {
 
 				FileFilter xmlFilter;
 				xmlFilter = new XMLFileFilter();
-				
+
 				// Prepare our xml to POJO converter
 				JAXBContext jc;
 				jc = JAXBContext.newInstance(Email.class);
@@ -66,7 +65,7 @@ public class EmailManager implements FolderManagerIF {
 						Email email;
 						email = (Email) unmarshaller.unmarshal(item);
 						node.addEmail(email);
-						
+
 						// This is added to show when and which xml is added to
 						// a node.
 						final String s = " | ";
@@ -83,6 +82,11 @@ public class EmailManager implements FolderManagerIF {
 				Logger.getLogger(EmailManager.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		}
+	}
+
+	@Override
+	public Folder getTopFolder() {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	private static class XMLFileFilter implements FileFilter {

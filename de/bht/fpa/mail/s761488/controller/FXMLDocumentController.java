@@ -124,7 +124,7 @@ public class FXMLDocumentController implements Initializable {
 		};
 
 		// get root tree item
-		rootFolder = folderManager.getRootFolder();
+		rootFolder = folderManager.getTopFolder();
 		rootNode = new TreeItem(rootFolder);
 		rootNode.setExpanded(true);
 

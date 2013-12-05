@@ -1,18 +1,26 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package de.bht.fpa.mail.s761488.model;
 
-/**
- *
- * @author tim
+/*
+ * This is the interface for classes that manage
+ * folders.
+ * 
+ * @author Simone Strippgen
  */
+
 public interface FolderManagerIF {
-	
-	public Folder getRootFolder();
-	public void loadContent(Folder folder);
-	
+
+    /**
+     * Get current root folder.
+     * @return current root folder.
+     */
+    Folder getTopFolder();
+    
+    
+    /**
+     * Loads all relevant content in the directory path of a folder
+     * into the folder.
+     * @param f the folder into which the content of the corresponding 
+     *          directory should be loaded
+     */
+    void loadContent(Folder f);     
 }
