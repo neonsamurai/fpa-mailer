@@ -56,7 +56,9 @@ public class FXMLDocumentController implements Initializable {
 	TableView<Email> emailListTable;
 
 	private ObservableList<Email> emailList;
-	private TableColumn<Email, String> importanceCol,
+	
+	@FXML
+	TableColumn<Email, String> importanceCol,
 	    receivedCol,
 	    readCol,
 	    senderCol,
@@ -132,31 +134,32 @@ public class FXMLDocumentController implements Initializable {
 		emailList = FXCollections.observableArrayList();
 		emailList.addAll(folder.getEmails());
 		emailListTable.setItems(emailList);
-		importanceCol = new TableColumn<>("IMPORTANCE");
+		// importanceCol = new TableColumn<>("IMPORTANCE");
 		importanceCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("importance"));
-		receivedCol = new TableColumn<>("Received");
+		// receivedCol = new TableColumn<>("Received");
 		receivedCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("received"));
-		readCol = new TableColumn<>("Read");
+		receivedCol.setSortType(TableColumn.SortType.DESCENDING);
+		// readCol = new TableColumn<>("Read");
 		readCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("read"));
-		senderCol = new TableColumn<>("Sender");
+		// senderCol = new TableColumn<>("Sender");
 		senderCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("sender"));
-		recepientsCol = new TableColumn<>("Recepients");
+		// recepientsCol = new TableColumn<>("Recepients");
 		recepientsCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("receiver"));
-		subjectCol = new TableColumn<>("subject");
+		// subjectCol = new TableColumn<>("Subject");
 		subjectCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("subject"));
-		emailListTable.getColumns().setAll(
-		    importanceCol,
-		    receivedCol,
-		    readCol,
-		    senderCol,
-		    recepientsCol,
-		    subjectCol);
+		// emailListTable.getColumns().setAll(
+		//     importanceCol,
+		//     receivedCol,
+		//     readCol,
+		//     senderCol,
+		//     recepientsCol,
+		//     subjectCol);
 
 	}
 
@@ -183,9 +186,7 @@ public class FXMLDocumentController implements Initializable {
 
 	private void updateTreeNode(TreeItem item) {
 		Folder folder = (Folder) item.getValue();
-		if (folder.getComponents().isEmpty()) {
-			folderManager.loadContent(folder);
-		}
+		folderManager.loadContent(folder);
 
 		// Only remove the DUMMY TreeItem, if it is really there.
 		if (folder.isExpandable()
@@ -204,6 +205,7 @@ public class FXMLDocumentController implements Initializable {
 	private void updateEmailList(Folder folder) {
 		emailList.clear();
 		emailList.addAll(folder.getEmails());
+		receivedCol.setSortType(TableColumn.SortType.DESCENDING);
 	}
 
 	private class HandleTreeSelectionEvents implements ChangeListener {
@@ -264,8 +266,7 @@ public class FXMLDocumentController implements Initializable {
 	}
 
 	private static class ObjectPropertyValueFactory implements
-	    Callback<TableColumn.CellDataFeatures<Email, String>, 
-	    ObservableValue<String>> {
+	    Callback<TableColumn.CellDataFeatures<Email, String>, ObservableValue<String>> {
 
 		private final String propertyName;
 		private Method method;
@@ -279,13 +280,12 @@ public class FXMLDocumentController implements Initializable {
 		}
 
 		@Override
-		public ObservableValue<String> 
-			call(TableColumn.CellDataFeatures<Email, String> p) {
+		public ObservableValue<String>
+		    call(TableColumn.CellDataFeatures<Email, String> p) {
 
 			try {
 				method = p.getValue().getClass().
 				    getMethod("get" + propertyName);
-				System.out.println(method);
 			} catch (NoSuchMethodException ex) {
 				Logger.getLogger(FXMLDocumentController.class.
 				    getName()).log(Level.SEVERE, null, ex);
@@ -294,23 +294,20 @@ public class FXMLDocumentController implements Initializable {
 				    getName()).log(Level.SEVERE, null, ex);
 			}
 			if (p.getValue() != null) {
-				try {	
+				try {
 					Object propertyObject;
 					propertyObject = method.invoke(
-						p.getValue());
+					    p.getValue());
 					return new SimpleStringProperty(
 					    propertyObject.toString());
 				} catch (IllegalAccessException ex) {
-					Logger.getLogger(FXMLDocumentController.
-					    class.getName()).
+					Logger.getLogger(FXMLDocumentController.class.getName()).
 					    log(Level.SEVERE, null, ex);
 				} catch (IllegalArgumentException ex) {
-					Logger.getLogger(FXMLDocumentController.
-					    class.getName()).
+					Logger.getLogger(FXMLDocumentController.class.getName()).
 					    log(Level.SEVERE, null, ex);
 				} catch (InvocationTargetException ex) {
-					Logger.getLogger(FXMLDocumentController.
-					    class.getName()).
+					Logger.getLogger(FXMLDocumentController.class.getName()).
 					    log(Level.SEVERE, null, ex);
 				}
 			}

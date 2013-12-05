@@ -42,27 +42,23 @@ public class EmailManager implements EmailManagerIF {
 
 				for (File item : nodePath.listFiles()) {
 					Component newNode;
-					if (item.isDirectory()) {
-						newNode = new Folder(item, true);
-						folder.addComponent(newNode);
-					}
 					// Only load XML files
 					if (item.isFile() && xmlFilter.accept(item)) {
 						newNode = new FileElement(item);
-						folder.addComponent(newNode);
 						Email email;
 						email = (Email) unmarshaller.unmarshal(item);
 						folder.addEmail(email);
 
-						// This is added to show when and which xml is added to
-						// a node.
+						// This is added to show when 
+						// and which xml is added to a 
+						// node.
 						final String s = " | ";
 						System.out.println(
-							"(Adding) [Email: "
-							+ email.getSender() + s
-							+ email.getReceived() + s
-							+ email.getSubject()
-							+ "]");
+						    "(Adding) [Email: "
+						    + email.getSender() + s
+						    + email.getReceived() + s
+						    + email.getSubject()
+						    + "]");
 					}
 
 				}

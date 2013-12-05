@@ -22,7 +22,16 @@
               <items>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="282.0" prefWidth="653.0">
                   <children>
-                    <TableView fx:id="emailListTable" prefHeight="282.0" prefWidth="653.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="23.0" />
+                    <TableView fx:id="emailListTable" prefHeight="282.0" prefWidth="653.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="23.0">
+                      <columns>
+                        <TableColumn maxWidth="5000.0" minWidth="10.0" prefWidth="102.0" sortable="true" text="Importance" fx:id="importanceCol" />
+                        <TableColumn prefWidth="110.0" sortType="DESCENDING" text="Received" fx:id="receivedCol" />
+                        <TableColumn prefWidth="110.0" text="Read" fx:id="readCol" />
+                        <TableColumn prefWidth="110.0" text="Sender" fx:id="senderCol" />
+                        <TableColumn prefWidth="110.0" text="Recepients" fx:id="recepientsCol" />
+                        <TableColumn prefWidth="110.0" text="Subject" fx:id="subjectCol" />
+                      </columns>
+                    </TableView>
                   </children>
                 </AnchorPane>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0" />

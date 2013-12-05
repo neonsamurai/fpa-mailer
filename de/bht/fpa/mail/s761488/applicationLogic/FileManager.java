@@ -19,7 +19,7 @@ public class FileManager implements FolderManagerIF {
 
 	//top Folder of the managed hierarchy
 	Folder topFolder;
-	DirectoryFilter filter;
+	DirectoryFilter directoriesOnly;
 
 	/**
 	 * Constructs a new FileManager object which manages a folder hierarchy,
@@ -30,7 +30,7 @@ public class FileManager implements FolderManagerIF {
 	 */
 	public FileManager(File file) {
 		this.topFolder = new Folder(file, true);
-		this.filter = new DirectoryFilter();
+		this.directoriesOnly = new DirectoryFilter();
 	}
 
 	/**
@@ -44,7 +44,7 @@ public class FileManager implements FolderManagerIF {
 	public void loadContent(Folder f) {
 		if (f.getComponents().isEmpty()) {
 			File folder = new File(f.getPath());
-			for (File childFolder : folder.listFiles(filter)) {
+			for (File childFolder : folder.listFiles(directoriesOnly)) {
 				Component newNode;
 				newNode = new Folder(childFolder, hasChildFolders(childFolder));
 				f.addComponent(newNode);
@@ -53,7 +53,7 @@ public class FileManager implements FolderManagerIF {
 	}
 
 	private boolean hasChildFolders(File folder) {
-		return folder.listFiles(filter).length > 0;
+		return folder.listFiles(directoriesOnly).length > 0;
 	}
 
 	@Override
