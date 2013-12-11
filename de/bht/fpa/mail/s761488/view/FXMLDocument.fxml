@@ -37,7 +37,19 @@
                     <Label fx:id="numberOfFoundEmails" layoutX="614.0" layoutY="29.0" prefWidth="37.0" text="()" textAlignment="CENTER" />
                   </children>
                 </AnchorPane>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0" />
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                  <children>
+                    <Label layoutX="14.0" layoutY="14.0" text="Sender:" underline="true" />
+                    <Label layoutX="14.0" layoutY="30.0" text="Subject:" underline="true" />
+                    <Label layoutX="434.0" layoutY="14.0" text="Received:" underline="true" />
+                    <Label layoutX="14.0" layoutY="46.0" text="Receiver:" underline="true" />
+                    <Label fx:id="emailSenderLabel" layoutX="88.0" layoutY="14.0" text="(no sender)" />
+                    <Label fx:id="emailSubjectLabel" layoutX="88.0" layoutY="30.0" text="(no subject)" />
+                    <Label fx:id="emailReceiverLabel" layoutX="88.0" layoutY="46.0" text="(no receiver)" />
+                    <Label fx:id="emailReceivedLabel" layoutX="507.0" layoutY="14.0" text="(no date received)" />
+                    <TextArea fx:id="emailTextArea" editable="false" layoutX="14.0" layoutY="72.0" prefHeight="221.0" prefWidth="627.0" text="(no text)" wrapText="true" />
+                  </children>
+                </AnchorPane>
               </items>
             </SplitPane>
           </children>

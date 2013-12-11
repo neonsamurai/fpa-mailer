@@ -15,8 +15,6 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,6 +35,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -62,7 +61,14 @@ public class FXMLDocumentController implements Initializable {
 	TextField emailFilterField;
 
 	@FXML
-	Label numberOfFoundEmails;
+	Label numberOfFoundEmails, 
+	    emailSubjectLabel, 
+	    emailReceivedLabel, 
+	    emailReceiverLabel,
+	    emailSenderLabel;
+	
+	@FXML
+	TextArea emailTextArea;
 
 	private ObservableList<Email> emailList;
 	private ObservableList<Email> emailListFiltered;
@@ -324,11 +330,29 @@ public class FXMLDocumentController implements Initializable {
 		public void changed(ObservableValue ov, Object t, Object t1) {
 
 			if (t1 == null) {
-				System.out.println("No mail selected.");
+				clearEmail();
 			} else {
-				System.out.println(t1 + " selected.");
+				renderEmail(t1);
 			}
 
+		}
+
+		private void renderEmail(Object t1) {
+			Email thisMail = (Email) t1;
+			emailReceivedLabel.setText(thisMail.getReceived());
+			emailReceiverLabel.setText(thisMail.getReceiver());
+			emailSenderLabel.setText(thisMail.getSender());
+			emailSubjectLabel.setText(thisMail.getSubject());
+			emailTextArea.setText(thisMail.getText());
+		}
+
+		private void clearEmail() {
+			String noMail = "(No email selected)";
+			emailReceivedLabel.setText(noMail);
+			emailReceiverLabel.setText(noMail);
+			emailSenderLabel.setText(noMail);
+			emailSubjectLabel.setText(noMail);
+			emailTextArea.setText(noMail);
 		}
 
 	}
