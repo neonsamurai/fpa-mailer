@@ -30,6 +30,8 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
@@ -69,6 +71,9 @@ public class FXMLDocumentController implements Initializable {
 	MenuItem menuFileSelectRootDirectory, 
 	    menuFileRecentRootFolders;
 
+	@FXML
+	MenuBar mailerMenu;
+	    
 	EventHandler handleTreeExpansion;
 
 	TreeItem<Component> rootNode;
@@ -134,41 +139,40 @@ public class FXMLDocumentController implements Initializable {
 		loadSubtree(rootNode, rootFolder);
 	}
 
+	/**
+	 * This method does not support submenus yet! Need to make recursive
+	 * traversal of menus to achieve that!
+	 */
 	private void configureMenue() {
 		MenuEventHandler myMenuEventHandler = new MenuEventHandler();
-		menuFileSelectRootDirectory.setOnAction(myMenuEventHandler);
+		
+		ObservableList<Menu> menuList = mailerMenu.getMenus();
+		
+		for(Menu menu: menuList){
+			ObservableList<MenuItem> menuItems = menu.getItems();
+			for(MenuItem item: menuItems){
+				item.setOnAction(myMenuEventHandler);
+			}
+		}
 	}
 
 	private void configureEmailList(Folder folder) {
 		emailList = FXCollections.observableArrayList();
 		emailList.addAll(folder.getEmails());
 		emailListTable.setItems(emailList);
-		// importanceCol = new TableColumn<>("IMPORTANCE");
 		importanceCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("importance"));
-		// receivedCol = new TableColumn<>("Received");
 		receivedCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("received"));
 		receivedCol.setSortType(TableColumn.SortType.DESCENDING);
-		// readCol = new TableColumn<>("Read");
 		readCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("read"));
-		// senderCol = new TableColumn<>("Sender");
 		senderCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("sender"));
-		// recepientsCol = new TableColumn<>("Recepients");
 		recepientsCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("receiver"));
-		// subjectCol = new TableColumn<>("Subject");
 		subjectCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("subject"));
-		// emailListTable.getColumns().setAll(
-		//     importanceCol,
-		//     receivedCol,
-		//     readCol,
-		//     senderCol,
-		//     recepientsCol,
-		//     subjectCol);
 
 	}
 

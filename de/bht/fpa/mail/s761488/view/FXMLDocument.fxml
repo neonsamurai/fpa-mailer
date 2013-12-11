@@ -41,7 +41,7 @@
         </AnchorPane>
       </items>
     </SplitPane>
-    <MenuBar prefHeight="24.0" prefWidth="899.0" AnchorPane.bottomAnchor="595.0" AnchorPane.leftAnchor="1.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+    <MenuBar fx:id="mailerMenu" maxHeight="-Infinity" prefHeight="24.0" prefWidth="899.0" useSystemMenuBar="true" AnchorPane.bottomAnchor="595.0" AnchorPane.leftAnchor="1.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
       <menus>
         <Menu mnemonicParsing="false" text="Account" />
         <Menu mnemonicParsing="false" text="File">
