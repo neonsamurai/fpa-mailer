@@ -15,6 +15,8 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,17 +24,20 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.stage.DirectoryChooser;
@@ -53,8 +58,15 @@ public class FXMLDocumentController implements Initializable {
 	@FXML
 	TableView<Email> emailListTable;
 
+	@FXML
+	TextField emailFilterField;
+
+	@FXML
+	Label numberOfFoundEmails;
+
 	private ObservableList<Email> emailList;
-	
+	private ObservableList<Email> emailListFiltered;
+
 	@FXML
 	TableColumn<Email, String> importanceCol,
 	    receivedCol,
@@ -64,12 +76,12 @@ public class FXMLDocumentController implements Initializable {
 	    subjectCol;
 
 	@FXML
-	MenuItem menuFileSelectRootDirectory, 
+	MenuItem menuFileSelectRootDirectory,
 	    menuFileRecentRootFolders;
 
 	@FXML
 	MenuBar mailerMenu;
-	    
+
 	EventHandler handleTreeExpansion;
 
 	TreeItem<Component> rootNode;
@@ -96,24 +108,24 @@ public class FXMLDocumentController implements Initializable {
 		configureMenue();
 		configureEmailList(rootFolder);
 	}
-	
+
 	private void loadRootFolder(File root) {
 		// set root folder
 		rootFolder = folderManager.getTopFolder();
 		// populate Folder model with root level items
 		folderManager.loadContent(rootFolder);
 	}
-	
-	private void initializeManagers(){
+
+	private void initializeManagers() {
 		// get Manager for our folders
 		folderManager = new FileManager(rootPath);
 		// get Manager for our emails
 		emailManager = new EmailManager();
-		
+
 	}
 
 	private void configureFolderExplorer() {
-		
+
 		// register eventHandlers
 		handleTreeExpansion = new HandleTreeEvents();
 
@@ -121,7 +133,6 @@ public class FXMLDocumentController implements Initializable {
 		selectedChanged = new HandleTreeSelectionEvents();
 
 		// get root tree item
-		
 		rootNode = new TreeItem(rootFolder);
 		rootNode.setExpanded(true);
 
@@ -141,12 +152,12 @@ public class FXMLDocumentController implements Initializable {
 	 */
 	private void configureMenue() {
 		MenuEventHandler myMenuEventHandler = new MenuEventHandler();
-		
+
 		ObservableList<Menu> menuList = mailerMenu.getMenus();
-		
-		for(Menu menu: menuList){
+
+		for (Menu menu : menuList) {
 			ObservableList<MenuItem> menuItems = menu.getItems();
-			for(MenuItem item: menuItems){
+			for (MenuItem item : menuItems) {
 				item.setOnAction(myMenuEventHandler);
 			}
 		}
@@ -154,8 +165,13 @@ public class FXMLDocumentController implements Initializable {
 
 	private void configureEmailList(Folder folder) {
 		emailList = FXCollections.observableArrayList();
+		emailListFiltered = FXCollections.observableArrayList();
 		emailList.addAll(folder.getEmails());
-		emailListTable.setItems(emailList);
+		emailList.addListener(new EmailListChangeListener());
+		emailListFiltered.addAll(folder.getEmails());
+		emailFilterField.textProperty().
+		    addListener(new HandleFilterFieldEvents());
+		emailListTable.setItems(emailListFiltered);
 		emailListTable.getSelectionModel().
 		    setSelectionMode(SelectionMode.SINGLE);
 		emailListTable.getSelectionModel().selectedItemProperty().
@@ -174,6 +190,56 @@ public class FXMLDocumentController implements Initializable {
 		subjectCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("subject"));
 
+	}
+
+	/**
+	 * Matches emails by filter string from emailFilterField. Matches
+	 * against these properties: subject, text, received, sent, receiver,
+	 * sender.
+	 *
+	 * @param email
+	 * @return boolean
+	 */
+	private boolean matchesEmailFilter(Email email) {
+		String filterString = emailFilterField.getText();
+		if (filterString == null || filterString.isEmpty()) {
+			// No filter --> Add all.
+			return true;
+		}
+
+		String lowerCaseFilterString = filterString.toLowerCase();
+
+		if (email.getSubject().toLowerCase().
+		    indexOf(lowerCaseFilterString) != -1) {
+			return true;
+		} else if (email.getText().toLowerCase().
+		    indexOf(lowerCaseFilterString) != -1) {
+			return true;
+		} else if (email.getReceived().toLowerCase().
+		    indexOf(lowerCaseFilterString) != -1) {
+			return true;
+		} else if (email.getSent().toLowerCase().
+		    indexOf(lowerCaseFilterString) != -1) {
+			return true;
+		} else if (email.getReceiver().toLowerCase().
+		    indexOf(lowerCaseFilterString) != -1) {
+			return true;
+		} else if (email.getSender().toLowerCase().
+		    indexOf(lowerCaseFilterString) != -1) {
+			return true;
+		}
+		return false; // Does not match
+	}
+
+
+	private void updateEmailListFiltered() {
+		emailListFiltered.clear();
+		for (Email email : emailList) {
+			if (matchesEmailFilter(email)) {
+				emailListFiltered.add(email);
+			}
+		}
+		updateFilterFieldLable();
 	}
 
 	private void loadSubtree(TreeItem insertNode, Folder folder) {
@@ -224,20 +290,47 @@ public class FXMLDocumentController implements Initializable {
 	private void setRootPath(File file) {
 		rootPath = file;
 	}
-	
+
+	private void updateFilterFieldLable() {
+		String numString = "(" + emailListFiltered.size() + ")";
+		numberOfFoundEmails.setText(numString);
+	}
+
+	/**
+	 * This was heavily inspired of:
+	 * http://edu.makery.ch/blog/2012/12/18/javafx-tableview-filter/
+	 */
+	private class EmailListChangeListener implements ListChangeListener {
+
+		@Override
+		public void onChanged(Change change) {
+			updateEmailListFiltered();
+		}
+
+	}
+
+	private class HandleFilterFieldEvents implements ChangeListener {
+
+		@Override
+		public void changed(ObservableValue ov, Object t, Object t1) {
+			updateEmailListFiltered();
+		}
+
+	}
+
 	private class HandleEmailListSelectionEvents implements ChangeListener {
 
 		@Override
 		public void changed(ObservableValue ov, Object t, Object t1) {
-			
-			if(t1 == null){
+
+			if (t1 == null) {
 				System.out.println("No mail selected.");
-			}else {
+			} else {
 				System.out.println(t1 + " selected.");
 			}
-			
+
 		}
-		
+
 	}
 
 	private class HandleTreeSelectionEvents implements ChangeListener {
@@ -300,13 +393,13 @@ public class FXMLDocumentController implements Initializable {
 		}
 	}
 
-	private static class ObjectPropertyValueFactory implements
+	private class ObjectPropertyValueFactory implements
 	    Callback<TableColumn.CellDataFeatures<Email, String>, ObservableValue<String>> {
 
 		private final String propertyName;
 		private Method method;
 
-		private ObjectPropertyValueFactory(String propertyName) {
+		ObjectPropertyValueFactory(String propertyName) {
 			char[] propertyNameArr = propertyName.toCharArray();
 			propertyNameArr[0] = Character.
 			    toUpperCase(propertyNameArr[0]);

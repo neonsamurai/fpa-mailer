@@ -33,7 +33,8 @@
                       </columns>
                     </TableView>
                     <Label layoutX="14.0" layoutY="29.0" text="Filter emails:" />
-                    <TextField fx:id="emailFilterField" layoutX="99.0" layoutY="26.0" prefWidth="552.0" />
+                    <TextField fx:id="emailFilterField" layoutX="99.0" layoutY="26.0" prefWidth="506.0" />
+                    <Label fx:id="numberOfFoundEmails" layoutX="614.0" layoutY="29.0" prefWidth="37.0" text="()" textAlignment="CENTER" />
                   </children>
                 </AnchorPane>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0" />
