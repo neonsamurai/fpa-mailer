@@ -66,9 +66,8 @@ public class FXMLDocumentController implements Initializable {
 	    subjectCol;
 
 	@FXML
-	MenuItem menuFileSelectRootDirectory;
-	@FXML
-	MenuItem menuFileRecentRootFolders;
+	MenuItem menuFileSelectRootDirectory, 
+	    menuFileRecentRootFolders;
 
 	EventHandler handleTreeExpansion;
 
@@ -89,19 +88,31 @@ public class FXMLDocumentController implements Initializable {
 	 */
 	@Override
 	public void initialize(URL url, ResourceBundle rb) {
-		configureFolderExplorer(new File(System.getProperty("user.home")));
+		setRootPath(new File(System.getProperty("user.home")));
+		initializeManagers();
+		loadRootFolder(rootPath);
+		configureFolderExplorer();
 		configureMenue();
 		configureEmailList(rootFolder);
 	}
-
-	private void configureFolderExplorer(File root) {
-		// set root path
-		rootPath = root;
-
+	
+	private void loadRootFolder(File root) {
+		// set root folder
+		rootFolder = folderManager.getTopFolder();
+		// populate Folder model with root level items
+		folderManager.loadContent(rootFolder);
+	}
+	
+	private void initializeManagers(){
 		// get Manager for our folders
 		folderManager = new FileManager(rootPath);
 		// get Manager for our emails
 		emailManager = new EmailManager();
+		
+	}
+
+	private void configureFolderExplorer() {
+		
 		// register eventHandlers
 		handleTreeExpansion = new HandleTreeEvents();
 
@@ -109,7 +120,7 @@ public class FXMLDocumentController implements Initializable {
 		selectedChanged = new HandleTreeSelectionEvents();
 
 		// get root tree item
-		rootFolder = folderManager.getTopFolder();
+		
 		rootNode = new TreeItem(rootFolder);
 		rootNode.setExpanded(true);
 
@@ -119,8 +130,6 @@ public class FXMLDocumentController implements Initializable {
 		fileExplorer.getSelectionModel().selectedItemProperty()
 		    .addListener(selectedChanged);
 
-		// populate Folder model with root level items
-		folderManager.loadContent(rootFolder);
 		// ...and update TreeView  with folder children
 		loadSubtree(rootNode, rootFolder);
 	}
@@ -208,6 +217,10 @@ public class FXMLDocumentController implements Initializable {
 		receivedCol.setSortType(TableColumn.SortType.DESCENDING);
 	}
 
+	private void setRootPath(File file) {
+		rootPath = file;
+	}
+
 	private class HandleTreeSelectionEvents implements ChangeListener {
 
 		@Override
@@ -257,7 +270,10 @@ public class FXMLDocumentController implements Initializable {
 			File newRootDirectory = newRootChooser.showDialog(chooseRootStage);
 			fileExplorer.getSelectionModel().selectedItemProperty()
 			    .removeListener(selectedChanged);
-			configureFolderExplorer(newRootDirectory);
+			setRootPath(newRootDirectory);
+			folderManager = new FileManager(rootPath);
+			loadRootFolder(newRootDirectory);
+			configureFolderExplorer();
 		}
 
 		private void showRootHistory() {
