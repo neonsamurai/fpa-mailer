@@ -12,12 +12,9 @@ import de.bht.fpa.mail.s761488.model.Email;
 import de.bht.fpa.mail.s761488.model.Folder;
 import de.bht.fpa.mail.s761488.model.FolderManagerIF;
 import java.io.File;
-import java.io.FileFilter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.Iterator;
-import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,7 +35,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -160,6 +156,10 @@ public class FXMLDocumentController implements Initializable {
 		emailList = FXCollections.observableArrayList();
 		emailList.addAll(folder.getEmails());
 		emailListTable.setItems(emailList);
+		emailListTable.getSelectionModel().
+		    setSelectionMode(SelectionMode.SINGLE);
+		emailListTable.getSelectionModel().selectedItemProperty().
+		    addListener(new HandleEmailListSelectionEvents());
 		importanceCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("importance"));
 		receivedCol.setCellValueFactory(
@@ -223,6 +223,21 @@ public class FXMLDocumentController implements Initializable {
 
 	private void setRootPath(File file) {
 		rootPath = file;
+	}
+	
+	private class HandleEmailListSelectionEvents implements ChangeListener {
+
+		@Override
+		public void changed(ObservableValue ov, Object t, Object t1) {
+			
+			if(t1 == null){
+				System.out.println("No mail selected.");
+			}else {
+				System.out.println(t1 + " selected.");
+			}
+			
+		}
+		
 	}
 
 	private class HandleTreeSelectionEvents implements ChangeListener {
@@ -331,7 +346,7 @@ public class FXMLDocumentController implements Initializable {
 					    log(Level.SEVERE, null, ex);
 				}
 			}
-			return new SimpleStringProperty("<no value>");
+			return new SimpleStringProperty("<No value>");
 		}
 	}
 }
