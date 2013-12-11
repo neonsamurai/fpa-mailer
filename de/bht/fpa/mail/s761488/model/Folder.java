@@ -50,4 +50,15 @@ public class Folder extends Component {
     public void addEmail(Email message) {
         emails.add(message);
     }
+    
+    @Override
+    public String toString(){
+	    String s;
+	    if(this.getEmails().size()> 0){
+		    s = getName() + "(" + this.getEmails().size() + ")";
+	    }else{
+		    s = getName();
+	    }
+	    return s;
+    }
  }

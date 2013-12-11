@@ -61,12 +61,12 @@ public class FXMLDocumentController implements Initializable {
 	TextField emailFilterField;
 
 	@FXML
-	Label numberOfFoundEmails, 
-	    emailSubjectLabel, 
-	    emailReceivedLabel, 
+	Label numberOfFoundEmails,
+	    emailSubjectLabel,
+	    emailReceivedLabel,
 	    emailReceiverLabel,
 	    emailSenderLabel;
-	
+
 	@FXML
 	TextArea emailTextArea;
 
@@ -237,7 +237,6 @@ public class FXMLDocumentController implements Initializable {
 		return false; // Does not match
 	}
 
-
 	private void updateEmailListFiltered() {
 		emailListFiltered.clear();
 		for (Email email : emailList) {
@@ -354,7 +353,6 @@ public class FXMLDocumentController implements Initializable {
 			emailSubjectLabel.setText(noMail);
 			emailTextArea.setText(noMail);
 		}
-
 	}
 
 	private class HandleTreeSelectionEvents implements ChangeListener {
@@ -366,6 +364,9 @@ public class FXMLDocumentController implements Initializable {
 				Folder folder;
 				folder = (Folder) treeNode.getValue();
 				emailManager.loadEmails(folder);
+				// Force tree node refresh, hacky :(
+				fileExplorer.setShowRoot(false);
+				fileExplorer.setShowRoot(true);
 				System.out.println("Selected directory: " + folder.getPath());
 				System.out.println("Number of Emails: " + folder.getEmails().size());
 				updateEmailList(folder);
@@ -379,7 +380,6 @@ public class FXMLDocumentController implements Initializable {
 		public void handle(Event t) {
 			TreeItem item = (TreeItem) t.getSource();
 			updateTreeNode(item);
-
 		}
 	}
 
