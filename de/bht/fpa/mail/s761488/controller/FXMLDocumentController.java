@@ -186,7 +186,6 @@ public class FXMLDocumentController implements Initializable {
 		    new ObjectPropertyValueFactory("importance"));
 		receivedCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("received"));
-		receivedCol.setSortType(TableColumn.SortType.DESCENDING);
 		readCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("read"));
 		senderCol.setCellValueFactory(
@@ -195,7 +194,6 @@ public class FXMLDocumentController implements Initializable {
 		    new ObjectPropertyValueFactory("receiver"));
 		subjectCol.setCellValueFactory(
 		    new ObjectPropertyValueFactory("subject"));
-
 	}
 
 	/**
@@ -289,7 +287,10 @@ public class FXMLDocumentController implements Initializable {
 	private void updateEmailList(Folder folder) {
 		emailList.clear();
 		emailList.addAll(folder.getEmails());
+		emailListTable.getSortOrder().clear();
+		emailListTable.getSortOrder().add(receivedCol);
 		receivedCol.setSortType(TableColumn.SortType.DESCENDING);
+		receivedCol.setSortable(true);
 	}
 
 	private void setRootPath(File file) {
