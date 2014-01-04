@@ -51,420 +51,371 @@ import javafx.util.Callback;
  */
 public class FXMLDocumentController implements Initializable {
 
-	@FXML
-	TreeView<Component> fileExplorer;
-
-	@FXML
-	TableView<Email> emailListTable;
-
-	@FXML
-	TextField emailFilterField;
-
-	@FXML
-	Label numberOfFoundEmails,
-	    emailSubjectLabel,
-	    emailReceivedLabel,
-	    emailReceiverLabel,
-	    emailSenderLabel;
-
-	@FXML
-	TextArea emailTextArea;
-
-	private ObservableList<Email> emailList;
-	private ObservableList<Email> emailListFiltered;
-
-	@FXML
-	TableColumn<Email, String> importanceCol,
-	    receivedCol,
-	    readCol,
-	    senderCol,
-	    recepientsCol,
-	    subjectCol;
-
-	@FXML
-	MenuItem menuFileSelectRootDirectory,
-	    menuFileRecentRootFolders;
-
-	@FXML
-	MenuBar mailerMenu;
-
-	EventHandler handleTreeExpansion;
-
-	TreeItem<Component> rootNode;
-	File rootPath;
-	Folder rootFolder;
-	FolderManagerIF folderManager;
-
-	final DirectoryChooser newRootChooser = new DirectoryChooser();
-	private ChangeListener selectedChanged;
-	private EmailManager emailManager;
-
-	/**
-	 * Initializes the controller class.
-	 *
-	 * @param url
-	 * @param rb
-	 */
-	@Override
-	public void initialize(URL url, ResourceBundle rb) {
-		setRootPath(new File(System.getProperty("user.home")));
-		initializeManagers();
-		loadRootFolder(rootPath);
-		configureFolderExplorer();
-		configureMenue();
-		configureEmailList(rootFolder);
-	}
-
-	private void loadRootFolder(File root) {
-		// set root folder
-		rootFolder = folderManager.getTopFolder();
-		// populate Folder model with root level items
-		folderManager.loadContent(rootFolder);
-	}
-
-	private void initializeManagers() {
-		// get Manager for our folders
-		folderManager = new FileManager(rootPath);
-		// get Manager for our emails
-		emailManager = new EmailManager();
-
-	}
-
-	private void configureFolderExplorer() {
-
-		// register eventHandlers
-		handleTreeExpansion = new HandleTreeEvents();
-
-		// register ChangeListeners
-		selectedChanged = new HandleTreeSelectionEvents();
-
-		// get root tree item
-		rootNode = new TreeItem(rootFolder);
-		rootNode.setExpanded(true);
-
-		// Init TreeView 
-		fileExplorer.setRoot(rootNode);
-		fileExplorer.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-		fileExplorer.getSelectionModel().selectedItemProperty()
-		    .addListener(selectedChanged);
-
-		// ...and update TreeView  with folder children
-		loadSubtree(rootNode, rootFolder);
-	}
-
-	/**
-	 * This method does not support submenus yet! Need to make recursive
-	 * traversal of menus to achieve that!
-	 */
-	private void configureMenue() {
-		MenuEventHandler myMenuEventHandler = new MenuEventHandler();
-
-		ObservableList<Menu> menuList = mailerMenu.getMenus();
-
-		for (Menu menu : menuList) {
-			ObservableList<MenuItem> menuItems = menu.getItems();
-			for (MenuItem item : menuItems) {
-				item.setOnAction(myMenuEventHandler);
-			}
-		}
-	}
-
-	private void configureEmailList(Folder folder) {
-		emailList = FXCollections.observableArrayList();
-		emailListFiltered = FXCollections.observableArrayList();
-		emailList.addAll(folder.getEmails());
-		emailList.addListener(new EmailListChangeListener());
-		emailListFiltered.addAll(folder.getEmails());
-		emailFilterField.textProperty().
-		    addListener(new HandleFilterFieldEvents());
-		emailListTable.setItems(emailListFiltered);
-		emailListTable.getSelectionModel().
-		    setSelectionMode(SelectionMode.SINGLE);
-		emailListTable.getSelectionModel().selectedItemProperty().
-		    addListener(new HandleEmailListSelectionEvents());
-		importanceCol.setCellValueFactory(
-		    new ObjectPropertyValueFactory("importance"));
-		receivedCol.setCellValueFactory(
-		    new ObjectPropertyValueFactory("received"));
-		readCol.setCellValueFactory(
-		    new ObjectPropertyValueFactory("read"));
-		senderCol.setCellValueFactory(
-		    new ObjectPropertyValueFactory("sender"));
-		recepientsCol.setCellValueFactory(
-		    new ObjectPropertyValueFactory("receiver"));
-		subjectCol.setCellValueFactory(
-		    new ObjectPropertyValueFactory("subject"));
-	}
-
-	/**
-	 * Matches emails by filter string from emailFilterField. Matches
-	 * against these properties: subject, text, received, sent, receiver,
-	 * sender.
-	 *
-	 * @param email
-	 * @return boolean
-	 */
-	private boolean matchesEmailFilter(Email email) {
-		String filterString = emailFilterField.getText();
-		if (filterString == null || filterString.isEmpty()) {
-			// No filter --> Add all.
-			return true;
-		}
-
-		String lowerCaseFilterString = filterString.toLowerCase();
-
-		if (email.getSubject().toLowerCase().
-		    indexOf(lowerCaseFilterString) != -1) {
-			return true;
-		} else if (email.getText().toLowerCase().
-		    indexOf(lowerCaseFilterString) != -1) {
-			return true;
-		} else if (email.getReceived().toLowerCase().
-		    indexOf(lowerCaseFilterString) != -1) {
-			return true;
-		} else if (email.getSent().toLowerCase().
-		    indexOf(lowerCaseFilterString) != -1) {
-			return true;
-		} else if (email.getReceiver().toLowerCase().
-		    indexOf(lowerCaseFilterString) != -1) {
-			return true;
-		} else if (email.getSender().toLowerCase().
-		    indexOf(lowerCaseFilterString) != -1) {
-			return true;
-		}
-		return false; // Does not match
-	}
-
-	private void updateEmailListFiltered() {
-		emailListFiltered.clear();
-		for (Email email : emailList) {
-			if (matchesEmailFilter(email)) {
-				emailListFiltered.add(email);
-			}
-		}
-		updateFilterFieldLable();
-	}
-
-	private void loadSubtree(TreeItem insertNode, Folder folder) {
-		// Only load subtree if it hasn't already been loaded!
-		if (insertNode.getChildren().size() == 0) {
-			for (Component node : folder.getComponents()) {
-				TreeItem newNode;
-				newNode = new TreeItem(node);
-
-				// Only add dummy TreeItem and event handler 
-				// if node is a folder and has subfolders.
-				if (node.isExpandable()) {
-					newNode.addEventHandler(
-					    TreeItem.branchExpandedEvent(),
-					    handleTreeExpansion);
-					newNode.getChildren().
-					    add(new TreeItem("DUMMY"));
-				}
-				insertNode.getChildren().add(newNode);
-			}
-		}
-	}
-
-	private void updateTreeNode(TreeItem item) {
-		Folder folder = (Folder) item.getValue();
-		folderManager.loadContent(folder);
-
-		// Only remove the DUMMY TreeItem, if it is really there.
-		if (folder.isExpandable()
-		    && item.getChildren().size() == 1) {
-			TreeItem thisItem;
-			thisItem = (TreeItem) item.getChildren().get(0);
-			if (thisItem.getValue().toString().equals("DUMMY")) {
-				// delete DUMMY TreeItem
-				item.getChildren().remove(0);
-			}
-		}
-
-		loadSubtree(item, folder);
-	}
-
-	private void updateEmailList(Folder folder) {
-		emailList.clear();
-		emailList.addAll(folder.getEmails());
-		emailListTable.getSortOrder().clear();
-		emailListTable.getSortOrder().add(receivedCol);
-		receivedCol.setSortType(TableColumn.SortType.DESCENDING);
-		receivedCol.setSortable(true);
-	}
-
-	private void setRootPath(File file) {
-		rootPath = file;
-	}
-
-	private void updateFilterFieldLable() {
-		String numString = "(" + emailListFiltered.size() + ")";
-		numberOfFoundEmails.setText(numString);
-	}
-
-	/**
-	 * This was heavily inspired of:
-	 * http://edu.makery.ch/blog/2012/12/18/javafx-tableview-filter/
-	 */
-	private class EmailListChangeListener implements ListChangeListener {
-
-		@Override
-		public void onChanged(Change change) {
-			updateEmailListFiltered();
-		}
-
-	}
-
-	private class HandleFilterFieldEvents implements ChangeListener {
-
-		@Override
-		public void changed(ObservableValue ov, Object t, Object t1) {
-			updateEmailListFiltered();
-		}
-
-	}
-
-	private class HandleEmailListSelectionEvents implements ChangeListener {
-
-		@Override
-		public void changed(ObservableValue ov, Object t, Object t1) {
-
-			if (t1 == null) {
-				clearEmail();
-			} else {
-				renderEmail(t1);
-			}
-
-		}
-
-		private void renderEmail(Object t1) {
-			Email thisMail = (Email) t1;
-			emailReceivedLabel.setText(thisMail.getReceived());
-			emailReceiverLabel.setText(thisMail.getReceiver());
-			emailSenderLabel.setText(thisMail.getSender());
-			emailSubjectLabel.setText(thisMail.getSubject());
-			emailTextArea.setText(thisMail.getText());
-		}
-
-		private void clearEmail() {
-			String noMail = "(No email selected)";
-			emailReceivedLabel.setText(noMail);
-			emailReceiverLabel.setText(noMail);
-			emailSenderLabel.setText(noMail);
-			emailSubjectLabel.setText(noMail);
-			emailTextArea.setText(noMail);
-		}
-	}
-
-	private class HandleTreeSelectionEvents implements ChangeListener {
-
-		@Override
-		public void changed(ObservableValue ov, Object t, Object t1) {
-			if (t1 != null) {
-				TreeItem treeNode = (TreeItem) t1;
-				Folder folder;
-				folder = (Folder) treeNode.getValue();
-				emailManager.loadEmails(folder);
-				// Force tree node refresh, hacky :(
-				fileExplorer.setShowRoot(false);
-				fileExplorer.setShowRoot(true);
-				System.out.println("Selected directory: " + folder.getPath());
-				System.out.println("Number of Emails: " + folder.getEmails().size());
-				updateEmailList(folder);
-			}
-		}
-	}
-
-	private class HandleTreeEvents implements EventHandler {
-
-		@Override
-		public void handle(Event t) {
-			TreeItem item = (TreeItem) t.getSource();
-			updateTreeNode(item);
-		}
-	}
-
-	private class MenuEventHandler implements EventHandler {
-
-		@Override
-		public void handle(Event t) {
-			MenuItem eventSource = (MenuItem) t.getSource();
-			String eventSourceId = eventSource.getId();
-
-			switch (eventSourceId) {
-				case "menuFileSelectRootDirectory":
-					showRootSelectorAndChangeRoot();
-					break;
-				case "menuFileRecentRootDirectories":
-					showRootHistory();
-					break;
-			}
-		}
-
-		private void showRootSelectorAndChangeRoot() {
-			Stage chooseRootStage = new Stage(StageStyle.UTILITY);
-			chooseRootStage.setTitle("Select new Root");
-			File newRootDirectory = newRootChooser.showDialog(chooseRootStage);
-			fileExplorer.getSelectionModel().selectedItemProperty()
-			    .removeListener(selectedChanged);
-			setRootPath(newRootDirectory);
-			folderManager = new FileManager(rootPath);
-			loadRootFolder(newRootDirectory);
-			configureFolderExplorer();
-		}
-
-		private void showRootHistory() {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-	}
-
-	private class ObjectPropertyValueFactory implements
-	    Callback<TableColumn.CellDataFeatures<Email, String>, ObservableValue<String>> {
-
-		private final String propertyName;
-		private Method method;
-
-		ObjectPropertyValueFactory(String propertyName) {
-			char[] propertyNameArr = propertyName.toCharArray();
-			propertyNameArr[0] = Character.
-			    toUpperCase(propertyNameArr[0]);
-
-			this.propertyName = new String(propertyNameArr);
-		}
-
-		@Override
-		public ObservableValue<String>
-		    call(TableColumn.CellDataFeatures<Email, String> p) {
-
-			try {
-				method = p.getValue().getClass().
-				    getMethod("get" + propertyName);
-			} catch (NoSuchMethodException ex) {
-				Logger.getLogger(FXMLDocumentController.class.
-				    getName()).log(Level.SEVERE, null, ex);
-			} catch (SecurityException ex) {
-				Logger.getLogger(FXMLDocumentController.class.
-				    getName()).log(Level.SEVERE, null, ex);
-			}
-			if (p.getValue() != null) {
-				try {
-					Object propertyObject;
-					propertyObject = method.invoke(
-					    p.getValue());
-					return new SimpleStringProperty(
-					    propertyObject.toString());
-				} catch (IllegalAccessException ex) {
-					Logger.getLogger(FXMLDocumentController.class.getName()).
-					    log(Level.SEVERE, null, ex);
-				} catch (IllegalArgumentException ex) {
-					Logger.getLogger(FXMLDocumentController.class.getName()).
-					    log(Level.SEVERE, null, ex);
-				} catch (InvocationTargetException ex) {
-					Logger.getLogger(FXMLDocumentController.class.getName()).
-					    log(Level.SEVERE, null, ex);
-				}
-			}
-			return new SimpleStringProperty("<No value>");
-		}
-	}
+    @FXML
+    TreeView<Component> fileExplorer;
+
+    @FXML
+    TableView<Email> emailListTable;
+
+    @FXML
+    TextField emailFilterField;
+
+    @FXML
+    Label numberOfFoundEmails,
+            emailSubjectLabel,
+            emailReceivedLabel,
+            emailReceiverLabel,
+            emailSenderLabel;
+
+    @FXML
+    TextArea emailTextArea;
+
+    @FXML
+    TableColumn<Email, String> importanceCol,
+            receivedCol,
+            readCol,
+            senderCol,
+            recepientsCol,
+            subjectCol;
+
+    @FXML
+    MenuItem menuFileSelectRootDirectory,
+            menuFileRecentRootFolders;
+
+    @FXML
+    MenuBar mailerMenu;
+
+    EventHandler handleTreeExpansion;
+
+    TreeItem<Component> rootNode;
+    File rootPath;
+    Folder rootFolder;
+    FolderManagerIF folderManager;
+
+    final DirectoryChooser newRootChooser = new DirectoryChooser();
+    private ChangeListener selectedChanged;
+    private EmailManager emailManager;
+
+    /**
+     * Initializes the controller class.
+     *
+     * @param url
+     * @param rb
+     */
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+        setRootPath(new File(System.getProperty("user.home")));
+        initializeManagers();
+        loadRootFolder(rootPath);
+        configureFolderExplorer();
+        configureMenue();
+        configureEmailList(rootFolder);
+    }
+    
+    private void configureEmailList(Folder folder) {
+        emailManager.configureEmailList(folder);
+        emailManager.emailList.addListener(new FXMLDocumentController.EmailListChangeListener());
+        emailFilterField.textProperty().
+                addListener(new FXMLDocumentController.HandleFilterFieldEvents());
+        emailListTable.setItems(emailManager.getEmailListFiltered());
+        emailListTable.getSelectionModel().
+                setSelectionMode(SelectionMode.SINGLE);
+        emailListTable.getSelectionModel().selectedItemProperty().
+                addListener(new FXMLDocumentController.HandleEmailListSelectionEvents());
+        importanceCol.setCellValueFactory(
+                new FXMLDocumentController.ObjectPropertyValueFactory("importance"));
+        receivedCol.setCellValueFactory(
+                new FXMLDocumentController.ObjectPropertyValueFactory("received"));
+        readCol.setCellValueFactory(
+                new FXMLDocumentController.ObjectPropertyValueFactory("read"));
+        senderCol.setCellValueFactory(
+                new FXMLDocumentController.ObjectPropertyValueFactory("sender"));
+        recepientsCol.setCellValueFactory(
+                new FXMLDocumentController.ObjectPropertyValueFactory("receiver"));
+        subjectCol.setCellValueFactory(
+                new FXMLDocumentController.ObjectPropertyValueFactory("subject"));
+    }
+
+    private void loadRootFolder(File root) {
+        // set root folder
+        rootFolder = folderManager.getTopFolder();
+        // populate Folder model with root level items
+        folderManager.loadContent(rootFolder);
+    }
+
+    private void initializeManagers() {
+        // get Manager for our folders
+        folderManager = new FileManager(rootPath);
+        // get Manager for our emails
+        emailManager = new EmailManager();
+
+    }
+
+    private void configureFolderExplorer() {
+
+        // register eventHandlers
+        handleTreeExpansion = new HandleTreeEvents();
+
+        // register ChangeListeners
+        selectedChanged = new HandleTreeSelectionEvents();
+
+        // get root tree item
+        rootNode = new TreeItem(rootFolder);
+        rootNode.setExpanded(true);
+
+        // Init TreeView 
+        fileExplorer.setRoot(rootNode);
+        fileExplorer.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        fileExplorer.getSelectionModel().selectedItemProperty()
+                .addListener(selectedChanged);
+
+        // ...and update TreeView  with folder children
+        loadSubtree(rootNode, rootFolder);
+    }
+
+    /**
+     * This method does not support submenus yet! Need to make recursive
+     * traversal of menus to achieve that!
+     */
+    private void configureMenue() {
+        MenuEventHandler myMenuEventHandler = new MenuEventHandler();
+
+        ObservableList<Menu> menuList = mailerMenu.getMenus();
+
+        for (Menu menu : menuList) {
+            ObservableList<MenuItem> menuItems = menu.getItems();
+            for (MenuItem item : menuItems) {
+                item.setOnAction(myMenuEventHandler);
+            }
+        }
+    }
+
+    private void loadSubtree(TreeItem insertNode, Folder folder) {
+        // Only load subtree if it hasn't already been loaded!
+        if (insertNode.getChildren().size() == 0) {
+            for (Component node : folder.getComponents()) {
+                TreeItem newNode;
+                newNode = new TreeItem(node);
+
+                // Only add dummy TreeItem and event handler 
+                // if node is a folder and has subfolders.
+                if (node.isExpandable()) {
+                    newNode.addEventHandler(
+                            TreeItem.branchExpandedEvent(),
+                            handleTreeExpansion);
+                    newNode.getChildren().
+                            add(new TreeItem("DUMMY"));
+                }
+                insertNode.getChildren().add(newNode);
+            }
+        }
+    }
+
+    private void updateTreeNode(TreeItem item) {
+        Folder folder = (Folder) item.getValue();
+        folderManager.loadContent(folder);
+
+        // Only remove the DUMMY TreeItem, if it is really there.
+        if (folder.isExpandable()
+                && item.getChildren().size() == 1) {
+            TreeItem thisItem;
+            thisItem = (TreeItem) item.getChildren().get(0);
+            if (thisItem.getValue().toString().equals("DUMMY")) {
+                // delete DUMMY TreeItem
+                item.getChildren().remove(0);
+            }
+        }
+
+        loadSubtree(item, folder);
+    }
+
+    private void setRootPath(File file) {
+        rootPath = file;
+    }
+
+    /**
+     * This was heavily inspired by:
+     * http://edu.makery.ch/blog/2012/12/18/javafx-tableview-filter/
+     */
+    private class EmailListChangeListener implements ListChangeListener {
+
+        @Override
+        public void onChanged(Change change) {
+            updateEmailListFiltered();
+        }
+
+    }
+
+    public void updateEmailListFiltered() {
+        String filterString = emailFilterField.getText();
+        emailManager.updateEmailListFiltered(filterString);
+        updateFilterFieldLabel();
+
+    }
+
+    private void updateFilterFieldLabel() {
+        String numString = "(" + emailManager.getEmailListFiltered().size() + ")";
+        numberOfFoundEmails.setText(numString);
+    }
+
+    private class HandleFilterFieldEvents implements ChangeListener {
+
+        @Override
+        public void changed(ObservableValue ov, Object t, Object t1) {
+            updateEmailListFiltered();
+        }
+
+    }
+
+    private class HandleEmailListSelectionEvents implements ChangeListener {
+
+        @Override
+        public void changed(ObservableValue ov, Object t, Object t1) {
+
+            if (t1 == null) {
+                clearEmail();
+            } else {
+                renderEmail(t1);
+            }
+
+        }
+
+        private void renderEmail(Object t1) {
+            Email thisMail = (Email) t1;
+            emailReceivedLabel.setText(thisMail.getReceived());
+            emailReceiverLabel.setText(thisMail.getReceiver());
+            emailSenderLabel.setText(thisMail.getSender());
+            emailSubjectLabel.setText(thisMail.getSubject());
+            emailTextArea.setText(thisMail.getText());
+        }
+
+        private void clearEmail() {
+            String noMail = "(No email selected)";
+            emailReceivedLabel.setText(noMail);
+            emailReceiverLabel.setText(noMail);
+            emailSenderLabel.setText(noMail);
+            emailSubjectLabel.setText(noMail);
+            emailTextArea.setText(noMail);
+        }
+    }
+
+    private class HandleTreeSelectionEvents implements ChangeListener {
+
+        @Override
+        public void changed(ObservableValue ov, Object t, Object t1) {
+            if (t1 != null) {
+                TreeItem treeNode = (TreeItem) t1;
+                Folder folder;
+                folder = (Folder) treeNode.getValue();
+                emailManager.loadEmails(folder);
+                // Force tree node refresh, hacky :(
+                fileExplorer.setShowRoot(false);
+                fileExplorer.setShowRoot(true);
+                System.out.println("Selected directory: " + folder.getPath());
+                System.out.println("Number of Emails: " + folder.getEmails().size());
+                emailManager.updateEmailList(folder);
+                updateEmailTable();
+            }
+        }
+
+        private void updateEmailTable() {
+            emailListTable.getSortOrder().clear();
+            emailListTable.getSortOrder().add(receivedCol);
+            receivedCol.setSortType(TableColumn.SortType.DESCENDING);
+            receivedCol.setSortable(true);
+        }
+    }
+
+    private class HandleTreeEvents implements EventHandler {
+
+        @Override
+        public void handle(Event t) {
+            TreeItem item = (TreeItem) t.getSource();
+            updateTreeNode(item);
+        }
+    }
+
+    private class MenuEventHandler implements EventHandler {
+
+        @Override
+        public void handle(Event t) {
+            MenuItem eventSource = (MenuItem) t.getSource();
+            String eventSourceId = eventSource.getId();
+
+            switch (eventSourceId) {
+                case "menuFileSelectRootDirectory":
+                    showRootSelectorAndChangeRoot();
+                    break;
+                case "menuFileRecentRootDirectories":
+                    showRootHistory();
+                    break;
+            }
+        }
+
+        private void showRootSelectorAndChangeRoot() {
+            Stage chooseRootStage = new Stage(StageStyle.UTILITY);
+            chooseRootStage.setTitle("Select new Root");
+            File newRootDirectory = newRootChooser.showDialog(chooseRootStage);
+            fileExplorer.getSelectionModel().selectedItemProperty()
+                    .removeListener(selectedChanged);
+            setRootPath(newRootDirectory);
+            folderManager = new FileManager(rootPath);
+            loadRootFolder(newRootDirectory);
+            configureFolderExplorer();
+        }
+
+        private void showRootHistory() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+    }
+
+    private class ObjectPropertyValueFactory implements
+            Callback<TableColumn.CellDataFeatures<Email, String>, ObservableValue<String>> {
+
+        private final String propertyName;
+        private Method method;
+
+        ObjectPropertyValueFactory(String propertyName) {
+            char[] propertyNameArr = propertyName.toCharArray();
+            propertyNameArr[0] = Character.
+                    toUpperCase(propertyNameArr[0]);
+
+            this.propertyName = new String(propertyNameArr);
+        }
+
+        @Override
+        public ObservableValue<String>
+                call(TableColumn.CellDataFeatures<Email, String> p) {
+
+            try {
+                method = p.getValue().getClass().
+                        getMethod("get" + propertyName);
+            } catch (NoSuchMethodException ex) {
+                Logger.getLogger(FXMLDocumentController.class.
+                        getName()).log(Level.SEVERE, null, ex);
+            } catch (SecurityException ex) {
+                Logger.getLogger(FXMLDocumentController.class.
+                        getName()).log(Level.SEVERE, null, ex);
+            }
+            if (p.getValue() != null) {
+                try {
+                    Object propertyObject;
+                    propertyObject = method.invoke(
+                            p.getValue());
+                    return new SimpleStringProperty(
+                            propertyObject.toString());
+                } catch (IllegalAccessException ex) {
+                    Logger.getLogger(FXMLDocumentController.class.getName()).
+                            log(Level.SEVERE, null, ex);
+                } catch (IllegalArgumentException ex) {
+                    Logger.getLogger(FXMLDocumentController.class.getName()).
+                            log(Level.SEVERE, null, ex);
+                } catch (InvocationTargetException ex) {
+                    Logger.getLogger(FXMLDocumentController.class.getName()).
+                            log(Level.SEVERE, null, ex);
+                }
+            }
+            return new SimpleStringProperty("<No value>");
+        }
+    }
 }
