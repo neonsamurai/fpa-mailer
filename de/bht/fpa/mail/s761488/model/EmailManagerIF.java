@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package de.bht.fpa.mail.s761488.model;
+
+import javafx.collections.ObservableList;
 
 /**
  * This interface should be used to implement classes which manage Email
@@ -13,13 +14,21 @@ package de.bht.fpa.mail.s761488.model;
  * @author tim.jagodzinski@gmail.com
  */
 public interface EmailManagerIF {
-	
-	/**
-	 * Reads emails from a folder object and makes them available as Email
-	 * objects.
-	 *
-	 * @param folder The source folder from which emails should be loaded.
-	 */
-	void loadEmails(Folder folder);
-	
+
+    /**
+     * Reads emails from a folder object and makes them available as Email
+     * objects.
+     *
+     * @param folder The source folder from which emails should be loaded.
+     */
+    void loadEmails(Folder folder);
+
+    public ObservableList<Email> getEmailList();
+
+    public ObservableList<Email> getEmailListFiltered();
+
+    public void updateEmailListFiltered(String filterString);
+
+    public void updateEmailList(Folder folder);
+
 }

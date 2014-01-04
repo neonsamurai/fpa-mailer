@@ -7,7 +7,9 @@
 package de.bht.fpa.mail.s761488.applicationLogic;
 
 import de.bht.fpa.mail.s761488.model.Email;
+import de.bht.fpa.mail.s761488.model.EmailManagerIF;
 import de.bht.fpa.mail.s761488.model.Folder;
+import de.bht.fpa.mail.s761488.model.FolderManagerIF;
 import java.io.File;
 import java.util.List;
 
@@ -17,12 +19,13 @@ import java.util.List;
  */
 public class ApplicationLogic implements ApplicationLogicIF {
     
-    private final EmailManager emailManager;
-    private final FileManager fileManager;
+    private final EmailManagerIF emailManager;
+    private final FolderManagerIF fileManager;
     
     public ApplicationLogic(File directory){
-        emailManager = new EmailManager();
+        
         fileManager = new FileManager(directory);
+        emailManager = new EmailManager(fileManager.getTopFolder());
     }
 
     @Override

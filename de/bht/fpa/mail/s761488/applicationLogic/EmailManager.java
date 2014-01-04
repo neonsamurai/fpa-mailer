@@ -29,6 +29,13 @@ public class EmailManager implements EmailManagerIF {
     public ObservableList<Email> emailList;
     private ObservableList<Email> emailListFiltered;
     
+    public EmailManager(Folder folder){
+        this.emailList = FXCollections.observableArrayList();
+        this.emailListFiltered = FXCollections.observableArrayList();
+        this.emailList.addAll(folder.getEmails());
+        this.emailListFiltered.addAll(folder.getEmails());
+    }
+    
     public ObservableList<Email> getEmailListFiltered(){
         return emailListFiltered;
     }
@@ -134,14 +141,11 @@ public class EmailManager implements EmailManagerIF {
         }
     }
 
-
-    public void configureEmailList(Folder folder) {
-        emailList = FXCollections.observableArrayList();
-        emailListFiltered = FXCollections.observableArrayList();
-        emailList.addAll(folder.getEmails());
-        
-        emailListFiltered.addAll(folder.getEmails());
+    @Override
+    public ObservableList<Email> getEmailList() {
+        return emailList;
     }
+
 
     private static class XMLFileFilter implements FileFilter {
 

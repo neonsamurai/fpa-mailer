@@ -61,6 +61,11 @@ public class FileManager implements FolderManagerIF {
 		return topFolder;
 	}
 
+    @Override
+    public void setTopFolder(File newRootDirectory) {
+        topFolder = new Folder(newRootDirectory, true);
+    }
+
 	private class DirectoryFilter implements FileFilter {
 
 		@Override

@@ -9,6 +9,7 @@ import de.bht.fpa.mail.s761488.applicationLogic.EmailManager;
 import de.bht.fpa.mail.s761488.applicationLogic.FileManager;
 import de.bht.fpa.mail.s761488.model.Component;
 import de.bht.fpa.mail.s761488.model.Email;
+import de.bht.fpa.mail.s761488.model.EmailManagerIF;
 import de.bht.fpa.mail.s761488.model.Folder;
 import de.bht.fpa.mail.s761488.model.FolderManagerIF;
 import java.io.File;
@@ -21,7 +22,6 @@ import java.util.logging.Logger;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -94,7 +94,7 @@ public class FXMLDocumentController implements Initializable {
 
     final DirectoryChooser newRootChooser = new DirectoryChooser();
     private ChangeListener selectedChanged;
-    private EmailManager emailManager;
+    private EmailManagerIF emailManager;
 
     /**
      * Initializes the controller class.
@@ -113,8 +113,8 @@ public class FXMLDocumentController implements Initializable {
     }
     
     private void configureEmailList(Folder folder) {
-        emailManager.configureEmailList(folder);
-        emailManager.emailList.addListener(new FXMLDocumentController.EmailListChangeListener());
+        
+        emailManager.getEmailList().addListener(new FXMLDocumentController.EmailListChangeListener());
         emailFilterField.textProperty().
                 addListener(new FXMLDocumentController.HandleFilterFieldEvents());
         emailListTable.setItems(emailManager.getEmailListFiltered());
@@ -147,7 +147,7 @@ public class FXMLDocumentController implements Initializable {
         // get Manager for our folders
         folderManager = new FileManager(rootPath);
         // get Manager for our emails
-        emailManager = new EmailManager();
+        emailManager = new EmailManager(folderManager.getTopFolder());
 
     }
 
@@ -358,7 +358,7 @@ public class FXMLDocumentController implements Initializable {
             File newRootDirectory = newRootChooser.showDialog(chooseRootStage);
             fileExplorer.getSelectionModel().selectedItemProperty()
                     .removeListener(selectedChanged);
-            setRootPath(newRootDirectory);
+            folderManager.setTopFolder(newRootDirectory);
             folderManager = new FileManager(rootPath);
             loadRootFolder(newRootDirectory);
             configureFolderExplorer();
