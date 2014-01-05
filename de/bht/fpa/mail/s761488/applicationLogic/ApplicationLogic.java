@@ -12,6 +12,7 @@ import de.bht.fpa.mail.s761488.model.Folder;
 import de.bht.fpa.mail.s761488.model.FolderManagerIF;
 import java.io.File;
 import java.util.List;
+import javafx.collections.ObservableList;
 
 /**
  *
@@ -57,6 +58,22 @@ public class ApplicationLogic implements ApplicationLogicIF {
     @Override
     public void saveEmails(File file) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public ObservableList<Email> getEmailList() {
+        return emailManager.getEmailList();
+    }
+
+    public ObservableList<Email> getEmailListFiltered() {
+        return emailManager.getEmailListFiltered();
+    }
+
+    public void updateEmailListFiltered(String filterString) {
+        emailManager.updateEmailListFiltered(filterString);
+    }
+
+    public void updateEmailList(Folder folder) {
+        emailManager.updateEmailList(folder);
     }
     
 }

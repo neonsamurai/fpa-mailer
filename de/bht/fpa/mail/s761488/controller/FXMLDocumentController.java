@@ -5,13 +5,10 @@
  */
 package de.bht.fpa.mail.s761488.controller;
 
-import de.bht.fpa.mail.s761488.applicationLogic.EmailManager;
-import de.bht.fpa.mail.s761488.applicationLogic.FileManager;
+import de.bht.fpa.mail.s761488.applicationLogic.ApplicationLogic;
 import de.bht.fpa.mail.s761488.model.Component;
 import de.bht.fpa.mail.s761488.model.Email;
-import de.bht.fpa.mail.s761488.model.EmailManagerIF;
 import de.bht.fpa.mail.s761488.model.Folder;
-import de.bht.fpa.mail.s761488.model.FolderManagerIF;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -88,11 +85,12 @@ public class FXMLDocumentController implements Initializable {
     EventHandler handleTreeExpansion;
 
     TreeItem<Component> rootNode;
-    FolderManagerIF folderManager;
+    
 
     final DirectoryChooser newRootChooser = new DirectoryChooser();
     private ChangeListener selectedChanged;
-    private EmailManagerIF emailManager;
+    
+    private ApplicationLogic manager;
 
     /**
      * Initializes the controller class.
@@ -104,18 +102,18 @@ public class FXMLDocumentController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         
         initializeManagers();
-        loadRootFolder(new File(folderManager.getTopFolder().getPath()));
+        loadRootFolder(new File(manager.getTopFolder().getPath()));
         configureFolderExplorer();
         configureMenue();
-        configureEmailList(folderManager.getTopFolder());
+        configureEmailList(manager.getTopFolder());
     }
     
     private void configureEmailList(Folder folder) {
         
-        emailManager.getEmailList().addListener(new FXMLDocumentController.EmailListChangeListener());
+        manager.getEmailList().addListener(new FXMLDocumentController.EmailListChangeListener());
         emailFilterField.textProperty().
                 addListener(new FXMLDocumentController.HandleFilterFieldEvents());
-        emailListTable.setItems(emailManager.getEmailListFiltered());
+        emailListTable.setItems(manager.getEmailListFiltered());
         emailListTable.getSelectionModel().
                 setSelectionMode(SelectionMode.SINGLE);
         emailListTable.getSelectionModel().selectedItemProperty().
@@ -137,15 +135,13 @@ public class FXMLDocumentController implements Initializable {
     private void loadRootFolder(File root) {
         
         // populate Folder model with root level items
-        folderManager.loadContent(folderManager.getTopFolder());
+        manager.loadContent(manager.getTopFolder());
     }
 
     private void initializeManagers() {
-        // get Manager for our folders
-        folderManager = new FileManager(new File(System.getProperty("user.home")));
-        // get Manager for our emails
-        emailManager = new EmailManager(folderManager.getTopFolder());
-
+        // get manager facade
+        manager = new ApplicationLogic(new File(System.getProperty("user.home")));
+        
     }
 
     private void configureFolderExplorer() {
@@ -157,7 +153,7 @@ public class FXMLDocumentController implements Initializable {
         selectedChanged = new HandleTreeSelectionEvents();
 
         // get root tree item
-        rootNode = new TreeItem(folderManager.getTopFolder());
+        rootNode = new TreeItem(manager.getTopFolder());
         rootNode.setExpanded(true);
 
         // Init TreeView 
@@ -167,7 +163,7 @@ public class FXMLDocumentController implements Initializable {
                 .addListener(selectedChanged);
 
         // ...and update TreeView  with folder children
-        loadSubtree(rootNode, folderManager.getTopFolder());
+        loadSubtree(rootNode, manager.getTopFolder());
     }
 
     /**
@@ -210,7 +206,7 @@ public class FXMLDocumentController implements Initializable {
 
     private void updateTreeNode(TreeItem item) {
         Folder folder = (Folder) item.getValue();
-        folderManager.loadContent(folder);
+        manager.loadContent(folder);
 
         // Only remove the DUMMY TreeItem, if it is really there.
         if (folder.isExpandable()
@@ -241,13 +237,13 @@ public class FXMLDocumentController implements Initializable {
 
     public void updateEmailListFiltered() {
         String filterString = emailFilterField.getText();
-        emailManager.updateEmailListFiltered(filterString);
+        manager.updateEmailListFiltered(filterString);
         updateFilterFieldLabel();
 
     }
 
     private void updateFilterFieldLabel() {
-        String numString = "(" + emailManager.getEmailListFiltered().size() + ")";
+        String numString = "(" + manager.getEmailListFiltered().size() + ")";
         numberOfFoundEmails.setText(numString);
     }
 
@@ -300,13 +296,13 @@ public class FXMLDocumentController implements Initializable {
                 TreeItem treeNode = (TreeItem) t1;
                 Folder folder;
                 folder = (Folder) treeNode.getValue();
-                emailManager.loadEmails(folder);
+                manager.loadEmails(folder);
                 // Force tree node refresh, hacky :(
                 fileExplorer.setShowRoot(false);
                 fileExplorer.setShowRoot(true);
                 System.out.println("Selected directory: " + folder.getPath());
                 System.out.println("Number of Emails: " + folder.getEmails().size());
-                emailManager.updateEmailList(folder);
+                manager.updateEmailList(folder);
                 updateEmailTable();
             }
         }
@@ -351,9 +347,9 @@ public class FXMLDocumentController implements Initializable {
             File newRootDirectory = newRootChooser.showDialog(chooseRootStage);
             fileExplorer.getSelectionModel().selectedItemProperty()
                     .removeListener(selectedChanged);
-            folderManager.setTopFolder(newRootDirectory);
-            folderManager = new FileManager(new File(folderManager.
-                    getTopFolder().getPath()));
+            manager.changeDirectory(newRootDirectory);
+            /** folderManager = new FileManager(new File(folderManager.
+                    getTopFolder().getPath()));**/
             loadRootFolder(newRootDirectory);
             configureFolderExplorer();
         }
