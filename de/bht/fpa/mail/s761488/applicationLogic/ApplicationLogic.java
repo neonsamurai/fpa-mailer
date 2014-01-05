@@ -51,7 +51,7 @@ public class ApplicationLogic implements ApplicationLogicIF {
 
     @Override
     public void changeDirectory(File file) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        fileManager.setTopFolder(file);
     }
 
     @Override
