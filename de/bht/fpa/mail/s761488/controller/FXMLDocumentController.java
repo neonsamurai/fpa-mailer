@@ -88,8 +88,6 @@ public class FXMLDocumentController implements Initializable {
     EventHandler handleTreeExpansion;
 
     TreeItem<Component> rootNode;
-    File rootPath;
-    Folder rootFolder;
     FolderManagerIF folderManager;
 
     final DirectoryChooser newRootChooser = new DirectoryChooser();
@@ -104,12 +102,12 @@ public class FXMLDocumentController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        setRootPath(new File(System.getProperty("user.home")));
+        
         initializeManagers();
-        loadRootFolder(rootPath);
+        loadRootFolder(new File(folderManager.getTopFolder().getPath()));
         configureFolderExplorer();
         configureMenue();
-        configureEmailList(rootFolder);
+        configureEmailList(folderManager.getTopFolder());
     }
     
     private void configureEmailList(Folder folder) {
@@ -137,15 +135,14 @@ public class FXMLDocumentController implements Initializable {
     }
 
     private void loadRootFolder(File root) {
-        // set root folder
-        rootFolder = folderManager.getTopFolder();
+        
         // populate Folder model with root level items
-        folderManager.loadContent(rootFolder);
+        folderManager.loadContent(folderManager.getTopFolder());
     }
 
     private void initializeManagers() {
         // get Manager for our folders
-        folderManager = new FileManager(rootPath);
+        folderManager = new FileManager(new File(System.getProperty("user.home")));
         // get Manager for our emails
         emailManager = new EmailManager(folderManager.getTopFolder());
 
@@ -160,7 +157,7 @@ public class FXMLDocumentController implements Initializable {
         selectedChanged = new HandleTreeSelectionEvents();
 
         // get root tree item
-        rootNode = new TreeItem(rootFolder);
+        rootNode = new TreeItem(folderManager.getTopFolder());
         rootNode.setExpanded(true);
 
         // Init TreeView 
@@ -170,7 +167,7 @@ public class FXMLDocumentController implements Initializable {
                 .addListener(selectedChanged);
 
         // ...and update TreeView  with folder children
-        loadSubtree(rootNode, rootFolder);
+        loadSubtree(rootNode, folderManager.getTopFolder());
     }
 
     /**
@@ -229,11 +226,7 @@ public class FXMLDocumentController implements Initializable {
         loadSubtree(item, folder);
     }
 
-    private void setRootPath(File file) {
-        rootPath = file;
-    }
-
-    /**
+     /**
      * This was heavily inspired by:
      * http://edu.makery.ch/blog/2012/12/18/javafx-tableview-filter/
      */
@@ -359,7 +352,8 @@ public class FXMLDocumentController implements Initializable {
             fileExplorer.getSelectionModel().selectedItemProperty()
                     .removeListener(selectedChanged);
             folderManager.setTopFolder(newRootDirectory);
-            folderManager = new FileManager(rootPath);
+            folderManager = new FileManager(new File(folderManager.
+                    getTopFolder().getPath()));
             loadRootFolder(newRootDirectory);
             configureFolderExplorer();
         }

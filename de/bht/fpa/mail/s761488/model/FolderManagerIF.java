@@ -1,5 +1,7 @@
 package de.bht.fpa.mail.s761488.model;
 
+import java.io.File;
+
 /*
  * This is the interface for classes that manage
  * folders.
@@ -23,4 +25,6 @@ public interface FolderManagerIF {
      *          directory should be loaded
      */
     void loadContent(Folder f);     
+
+    public void setTopFolder(File newRootDirectory);
 }
