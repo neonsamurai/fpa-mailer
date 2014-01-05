@@ -18,6 +18,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 /**
@@ -28,19 +29,17 @@ public class EmailManager implements EmailManagerIF {
 
     public ObservableList<Email> emailList;
     private ObservableList<Email> emailListFiltered;
-    
-    public EmailManager(Folder folder){
+
+    public EmailManager(Folder folder) {
         this.emailList = FXCollections.observableArrayList();
         this.emailListFiltered = FXCollections.observableArrayList();
         this.emailList.addAll(folder.getEmails());
         this.emailListFiltered.addAll(folder.getEmails());
     }
-    
-    public ObservableList<Email> getEmailListFiltered(){
+
+    public ObservableList<Email> getEmailListFiltered() {
         return emailListFiltered;
     }
-    
-    
 
     /**
      * Matches emails by filter string from emailFilterField. Matches against
@@ -50,7 +49,7 @@ public class EmailManager implements EmailManagerIF {
      * @return boolean
      */
     private boolean matchesEmailFilter(Email email, String filterString) {
-        
+
         if (filterString == null || filterString.isEmpty()) {
             // No filter --> Add all.
             return true;
@@ -87,16 +86,15 @@ public class EmailManager implements EmailManagerIF {
                 emailListFiltered.add(email);
             }
         }
-        
+
     }
 
     public void updateEmailList(Folder folder) {
-		emailList.clear();
-		emailList.addAll(folder.getEmails());
-		
-	}
-    
-    
+        emailList.clear();
+        emailList.addAll(folder.getEmails());
+
+    }
+
     @Override
     public void loadEmails(Folder folder) {
         // Only load emails if they havn't already been loaded.
@@ -146,6 +144,29 @@ public class EmailManager implements EmailManagerIF {
         return emailList;
     }
 
+    @Override
+    public void saveEmails(File destination) {
+        try {
+            JAXBContext jc;
+            jc = JAXBContext.newInstance(Email.class);
+
+            Marshaller marshaller;
+            marshaller = jc.createMarshaller();
+
+            System.out.println("Saving emails to " + destination);
+
+            int i = 0;
+            for (Email email : emailList) {
+                i++;
+                File xmlEmail;
+                xmlEmail = new File(destination.getAbsolutePath() + "/" + i + ".xml");
+                System.out.println("Saving message: " + email.toString());
+                marshaller.marshal(email, xmlEmail);
+            }
+        } catch (JAXBException ex) {
+            Logger.getLogger(EmailManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     private static class XMLFileFilter implements FileFilter {
 

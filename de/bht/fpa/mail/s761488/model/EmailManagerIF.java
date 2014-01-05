@@ -5,6 +5,7 @@
  */
 package de.bht.fpa.mail.s761488.model;
 
+import java.io.File;
 import javafx.collections.ObservableList;
 
 /**
@@ -30,5 +31,7 @@ public interface EmailManagerIF {
     public void updateEmailListFiltered(String filterString);
 
     public void updateEmailList(Folder folder);
+
+    public void saveEmails(File destination);
 
 }

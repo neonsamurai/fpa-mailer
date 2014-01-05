@@ -338,6 +338,8 @@ public class FXMLDocumentController implements Initializable {
                 case "menuFileRecentRootDirectories":
                     showRootHistory();
                     break;
+                case "menuFileSaveEmails":
+                    showDirectoryChooserAndSaveEmails();
             }
         }
 
@@ -356,6 +358,14 @@ public class FXMLDocumentController implements Initializable {
 
         private void showRootHistory() {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        private void showDirectoryChooserAndSaveEmails() {
+            Stage chooseDirectoryStage = new Stage(StageStyle.UTILITY);
+            chooseDirectoryStage.setTitle("Select destination directory");
+            File newRootDirectory = newRootChooser.
+                    showDialog(chooseDirectoryStage);
+            manager.saveEmails(newRootDirectory);
         }
     }
 

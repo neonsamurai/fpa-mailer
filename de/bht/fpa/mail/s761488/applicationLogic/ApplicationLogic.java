@@ -57,7 +57,7 @@ public class ApplicationLogic implements ApplicationLogicIF {
 
     @Override
     public void saveEmails(File file) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        emailManager.saveEmails(file);
     }
 
     public ObservableList<Email> getEmailList() {
