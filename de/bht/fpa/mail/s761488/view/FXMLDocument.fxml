@@ -20,7 +20,7 @@
           <children>
             <SplitPane dividerPositions="0.5" focusTraversable="true" orientation="VERTICAL" prefHeight="578.0" prefWidth="655.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <items>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="282.0" prefWidth="653.0">
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="262.0" prefWidth="653.0">
                   <children>
                     <TableView fx:id="emailListTable" prefHeight="256.0" prefWidth="653.0" AnchorPane.bottomAnchor="-3.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="52.0">
                       <columns>
@@ -56,9 +56,15 @@
         </AnchorPane>
       </items>
     </SplitPane>
-    <MenuBar fx:id="mailerMenu" maxHeight="-Infinity" prefHeight="24.0" prefWidth="899.0" useSystemMenuBar="true" AnchorPane.bottomAnchor="595.0" AnchorPane.leftAnchor="1.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+    <MenuBar fx:id="mailerMenu" layoutY="11.0" maxHeight="-Infinity" prefHeight="24.0" prefWidth="899.0" useSystemMenuBar="true" AnchorPane.leftAnchor="1.0" AnchorPane.rightAnchor="0.0">
       <menus>
-        <Menu mnemonicParsing="false" text="Account" />
+        <Menu mnemonicParsing="false" text="Account">
+          <items>
+            <Menu mnemonicParsing="false" text="Open Account..." fx:id="menuAccountOpenAccount" />
+            <Menu mnemonicParsing="false" text="Edit Account..." fx:id="menuAccountEditAccount" />
+            <MenuItem mnemonicParsing="false" text="Create Account..." fx:id="menuCreateAccount" />
+          </items>
+        </Menu>
         <Menu mnemonicParsing="false" text="File">
           <items>
             <MenuItem mnemonicParsing="false" text="Open..." fx:id="menuFileSelectRootDirectory" />
