@@ -1,6 +1,7 @@
 package de.bht.fpa.mail.s761488.model;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,11 +11,11 @@ import java.util.List;
  *
  */
 
-public class Folder extends Component {
+public class Folder extends Component implements Serializable{
 
     private final boolean expandable;
-    private final ArrayList<Component> content;
-    private List<Email> emails;
+    private final transient ArrayList<Component> content;
+    private transient List<Email> emails;
 
     public Folder(File path, boolean expandable) {
         super(path);

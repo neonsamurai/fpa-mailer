@@ -6,6 +6,8 @@
 package de.bht.fpa.mail.s761488.controller;
 
 import de.bht.fpa.mail.s761488.applicationLogic.ApplicationLogic;
+import de.bht.fpa.mail.s761488.applicationLogic.account.AccountFileDAO;
+import de.bht.fpa.mail.s761488.model.Account;
 import de.bht.fpa.mail.s761488.model.Component;
 import de.bht.fpa.mail.s761488.model.Email;
 import de.bht.fpa.mail.s761488.model.Folder;
@@ -13,6 +15,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -82,14 +85,16 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     MenuBar mailerMenu;
 
+    @FXML
+    Menu menuAccountOpenAccount, menuAccountEditAccount;
+
     EventHandler handleTreeExpansion;
 
     TreeItem<Component> rootNode;
-    
 
     final DirectoryChooser newRootChooser = new DirectoryChooser();
     private ChangeListener selectedChanged;
-    
+
     private ApplicationLogic manager;
 
     /**
@@ -100,16 +105,16 @@ public class FXMLDocumentController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        
+
         initializeManagers();
         loadRootFolder(new File(manager.getTopFolder().getPath()));
         configureFolderExplorer();
         configureMenue();
         configureEmailList(manager.getTopFolder());
     }
-    
+
     private void configureEmailList(Folder folder) {
-        
+
         manager.getEmailList().addListener(new FXMLDocumentController.EmailListChangeListener());
         emailFilterField.textProperty().
                 addListener(new FXMLDocumentController.HandleFilterFieldEvents());
@@ -133,7 +138,7 @@ public class FXMLDocumentController implements Initializable {
     }
 
     private void loadRootFolder(File root) {
-        
+
         // populate Folder model with root level items
         manager.loadContent(manager.getTopFolder());
     }
@@ -141,7 +146,7 @@ public class FXMLDocumentController implements Initializable {
     private void initializeManagers() {
         // get manager facade
         manager = new ApplicationLogic(new File(System.getProperty("user.home")));
-        
+
     }
 
     private void configureFolderExplorer() {
@@ -180,6 +185,23 @@ public class FXMLDocumentController implements Initializable {
             for (MenuItem item : menuItems) {
                 item.setOnAction(myMenuEventHandler);
             }
+        }
+        loadAccountsToMenu();
+    }
+
+    private void loadAccountsToMenu() {
+        System.out.println("Loading Accounts...");
+        // get Accounts list
+        AccountFileDAO accountDAO = new AccountFileDAO();
+        List<Account> accounts = accountDAO.getAllAccounts();
+//        System.out.println(accounts);
+        // add MenuItems with text=name
+        for(Account account: accounts){
+            MenuItem accountCreateItem, accountEditItem;
+            accountCreateItem = new MenuItem(account.getName());
+            accountEditItem = new MenuItem(account.getName());
+            menuAccountOpenAccount.getItems().add(accountCreateItem);
+            menuAccountEditAccount.getItems().add(accountEditItem);
         }
     }
 
@@ -222,7 +244,7 @@ public class FXMLDocumentController implements Initializable {
         loadSubtree(item, folder);
     }
 
-     /**
+    /**
      * This was heavily inspired by:
      * http://edu.makery.ch/blog/2012/12/18/javafx-tableview-filter/
      */
@@ -350,8 +372,10 @@ public class FXMLDocumentController implements Initializable {
             fileExplorer.getSelectionModel().selectedItemProperty()
                     .removeListener(selectedChanged);
             manager.changeDirectory(newRootDirectory);
-            /** folderManager = new FileManager(new File(folderManager.
-                    getTopFolder().getPath()));**/
+            /**
+             * folderManager = new FileManager(new File(folderManager.
+             * getTopFolder().getPath()));*
+             */
             loadRootFolder(newRootDirectory);
             configureFolderExplorer();
         }
