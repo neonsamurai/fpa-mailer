@@ -417,17 +417,15 @@ public class FXMLDocumentController implements Initializable {
         }
 
         private void changeRootByAccount(Account account) {
-            Folder newRootFolder;
-            newRootFolder = account.getTop();
-
-            File newRootDirectory;
-            newRootDirectory = new File(newRootFolder.getPath());
-            System.out.println("Changing root to ..." + newRootFolder.getPath());
+            
+            manager.openAccount(account.getName());
+            
+            System.out.println("Changed root to ..." + manager.getTopFolder().getPath());
+            
             fileExplorer.getSelectionModel().selectedItemProperty()
                     .removeListener(selectedChanged);
-            manager.changeDirectory(newRootDirectory);
 
-            loadRootFolder(newRootDirectory);
+            manager.loadContent(manager.getTopFolder());
             configureFolderExplorer();
         }
 
