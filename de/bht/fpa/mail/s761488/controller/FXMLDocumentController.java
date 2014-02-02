@@ -12,6 +12,7 @@ import de.bht.fpa.mail.s761488.model.Component;
 import de.bht.fpa.mail.s761488.model.Email;
 import de.bht.fpa.mail.s761488.model.Folder;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -27,7 +28,9 @@ import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -39,6 +42,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.layout.Pane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -368,6 +372,7 @@ public class FXMLDocumentController implements Initializable {
             if (eventSourceId == null) {
                 eventSourceId = eventSource.getParentMenu().getId();
             }
+            System.out.println(eventSourceId);
             switch (eventSourceId) {
                 case "menuFileSelectRootDirectory":
                     showRootSelectorAndChangeRoot();
@@ -385,11 +390,16 @@ public class FXMLDocumentController implements Initializable {
                 case "menuAccountEditAccount":
                     Account editAccount = (Account) eventSource.getUserData();
                     showEditAccount(editAccount);
+                    break;
+                case "menuAccountCreateAccount":
+                    showCreateAccount();
             }
-
         }
 
-        private void showRootSelectorAndChangeRoot() {
+        
+    }
+    
+    private void showRootSelectorAndChangeRoot() {
             Stage chooseRootStage = new Stage(StageStyle.UTILITY);
             chooseRootStage.setTitle("Select new Root");
             File newRootDirectory = newRootChooser.showDialog(chooseRootStage);
@@ -417,11 +427,11 @@ public class FXMLDocumentController implements Initializable {
         }
 
         private void changeRootByAccount(Account account) {
-            
+
             manager.openAccount(account.getName());
-            
+
             System.out.println("Changed root to ..." + manager.getTopFolder().getPath());
-            
+
             fileExplorer.getSelectionModel().selectedItemProperty()
                     .removeListener(selectedChanged);
 
@@ -430,9 +440,40 @@ public class FXMLDocumentController implements Initializable {
         }
 
         private void showEditAccount(Account account) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            Stage editStage = new Stage(StageStyle.UTILITY);
+            editStage.setTitle("FPA Mailer - Edit Account: " + account.getName());
+            URL location = getClass().getResource("/de/bht/fpa/mail/s761488/view/AccountForm.fxml");
+
+            FXMLLoader fxmlLoader = new FXMLLoader();
+            fxmlLoader.setLocation(location);
+            fxmlLoader.setController(new CreateAccountViewController(manager, account));
+            try {
+                Pane myPane = (Pane) fxmlLoader.load();
+                Scene myScene = new Scene(myPane);
+                editStage.setScene(myScene);
+                editStage.show();
+            } catch (IOException ex) {
+                Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
-    }
+
+        private void showCreateAccount() {
+            Stage createStage = new Stage(StageStyle.UTILITY);
+            createStage.setTitle("FPA Mailer - Create new Account");
+            URL location = getClass().getResource("/de/bht/fpa/mail/s761488/view/AccountForm.fxml");
+
+            FXMLLoader fxmlLoader = new FXMLLoader();
+            fxmlLoader.setLocation(location);
+            fxmlLoader.setController(new CreateAccountViewController(manager));
+            try {
+                Pane myPane = (Pane) fxmlLoader.load();
+                Scene myScene = new Scene(myPane);
+                createStage.setScene(myScene);
+                createStage.show();
+            } catch (IOException ex) {
+                Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
 
     private class ObjectPropertyValueFactory implements
             Callback<TableColumn.CellDataFeatures<Email, String>, ObservableValue<String>> {

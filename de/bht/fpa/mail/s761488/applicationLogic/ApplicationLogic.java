@@ -6,8 +6,8 @@
 
 package de.bht.fpa.mail.s761488.applicationLogic;
 
-import de.bht.fpa.mail.s761488.applicationLogic.account.AccountDAOIF;
 import de.bht.fpa.mail.s761488.applicationLogic.account.AccountFileDAO;
+import de.bht.fpa.mail.s761488.applicationLogic.account.AccountManagerIF;
 import de.bht.fpa.mail.s761488.model.Account;
 import de.bht.fpa.mail.s761488.model.Email;
 import de.bht.fpa.mail.s761488.model.EmailManagerIF;
@@ -15,7 +15,6 @@ import de.bht.fpa.mail.s761488.model.Folder;
 import de.bht.fpa.mail.s761488.model.FolderManagerIF;
 import java.io.File;
 import java.util.List;
-import java.util.ListIterator;
 import javafx.collections.ObservableList;
 
 /**
@@ -26,13 +25,13 @@ public class ApplicationLogic implements ApplicationLogicIF {
     
     private final EmailManagerIF emailManager;
     private final FolderManagerIF fileManager;
-    private final AccountDAOIF accountManager;
+    private final AccountManagerIF accountManager;
     
     public ApplicationLogic(File directory){
         
         fileManager = new FileManager(directory);
         emailManager = new EmailManager(fileManager.getTopFolder());
-        accountManager = new AccountFileDAO();
+        accountManager = new AccountManager();
     }
 
     @Override
@@ -84,38 +83,37 @@ public class ApplicationLogic implements ApplicationLogicIF {
 
     @Override
     public void openAccount(String name) {
-        ListIterator allAccounts = accountManager.getAllAccounts().listIterator();
-        Account acc;
-        Folder newRootFolder = null;
+        Account account = accountManager.getAccount(name);
         
-        while(allAccounts.hasNext()){
-            acc = (Account) allAccounts.next();
-            if(name.equals(acc.getName())){
-                newRootFolder = acc.getTop();
-            }
-        }
-        
-        changeDirectory(new File(newRootFolder.getPath()));
+        changeDirectory(new File(account.getTop().getPath()));
     }
 
     @Override
     public List<String> getAllAccounts() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<String> accountNames = null;
+        List<Account> accounts;
+        accounts = accountManager.getAllAccounts();
+        
+        for(Account account: accounts){
+            accountNames.add(account.getName());
+        }
+        
+        return accountNames;
     }
 
     @Override
     public Account getAccount(String name) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return accountManager.getAccount(name);
     }
 
     @Override
     public boolean saveAccount(Account account) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return accountManager.saveAccount(account);
     }
 
     @Override
     public void updateAccount(Account account) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        accountManager.updateAccount(account);
     }
     
 }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2">
+  <children>
+    <Label layoutX="14.0" layoutY="76.0" text="Name" />
+    <TextField fx:id="accountNameField" layoutX="14.0" layoutY="92.0" prefWidth="286.0" />
+    <TextField fx:id="accountHostField" layoutX="14.0" layoutY="141.0" prefWidth="286.0" />
+    <TextField fx:id="accountUsernameField" layoutX="14.0" layoutY="197.0" prefWidth="286.0" />
+    <Label layoutX="14.0" layoutY="125.0" text="Host" />
+    <Label layoutX="14.0" layoutY="181.0" text="Username" />
+    <Label layoutX="14.0" layoutY="238.0" text="Password" />
+    <Label layoutX="14.0" layoutY="297.0" text="Repeat Password" />
+    <Label fx:id="accountFormHeadingLabel" layoutX="14.0" layoutY="31.0" text="Label">
+      <font>
+        <Font name="System Bold" size="16.0" />
+      </font>
+    </Label>
+    <Button fx:id="accountButtonSubmit" layoutX="520.0" layoutY="366.0" mnemonicParsing="false" text="Submit" />
+    <Button fx:id="accountButtonCancel" layoutX="14.0" layoutY="360.0" mnemonicParsing="false" text="Cancel" />
+    <PasswordField fx:id="accountPasswordField" layoutX="14.0" layoutY="254.0" prefWidth="286.0" />
+    <PasswordField fx:id="accountRepeatPasswordField" layoutX="14.0" layoutY="313.0" prefWidth="286.0" />
+    <Label fx:id="accountMessage" alignment="TOP_LEFT" layoutX="319.0" layoutY="79.0" prefHeight="256.0" prefWidth="267.0" text="Label" textFill="RED" wrapText="true" />
+  </children>
+</AnchorPane>

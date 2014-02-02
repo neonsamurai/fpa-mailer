@@ -62,7 +62,7 @@
           <items>
             <Menu mnemonicParsing="false" text="Open Account..." fx:id="menuAccountOpenAccount" />
             <Menu mnemonicParsing="false" text="Edit Account..." fx:id="menuAccountEditAccount" />
-            <MenuItem mnemonicParsing="false" text="Create Account..." fx:id="menuCreateAccount" />
+            <MenuItem mnemonicParsing="false" text="Create Account..." fx:id="menuAccountCreateAccount" />
           </items>
         </Menu>
         <Menu mnemonicParsing="false" text="File">
