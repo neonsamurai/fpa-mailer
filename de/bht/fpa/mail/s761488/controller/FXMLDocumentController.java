@@ -176,17 +176,27 @@ public class FXMLDocumentController implements Initializable {
      * traversal of menus to achieve that!
      */
     private void configureMenue() {
-        MenuEventHandler myMenuEventHandler = new MenuEventHandler();
+        loadAccountsToMenu();
 
         ObservableList<Menu> menuList = mailerMenu.getMenus();
 
         for (Menu menu : menuList) {
-            ObservableList<MenuItem> menuItems = menu.getItems();
-            for (MenuItem item : menuItems) {
+            addMenuEventHandlers(menu);
+        }
+    }
+
+    private void addMenuEventHandlers(Menu menu) {
+        MenuEventHandler myMenuEventHandler = new MenuEventHandler();
+        ObservableList<MenuItem> menuItems = menu.getItems();
+        for (MenuItem item : menuItems) {
+            if (item instanceof Menu) {
+                addMenuEventHandlers((Menu) item);
+                System.out.println(item.toString());
+            } else {
+                System.out.println(item.toString());
                 item.setOnAction(myMenuEventHandler);
             }
         }
-        loadAccountsToMenu();
     }
 
     private void loadAccountsToMenu() {
@@ -196,10 +206,12 @@ public class FXMLDocumentController implements Initializable {
         List<Account> accounts = accountDAO.getAllAccounts();
 //        System.out.println(accounts);
         // add MenuItems with text=name
-        for(Account account: accounts){
+        for (Account account : accounts) {
             MenuItem accountCreateItem, accountEditItem;
             accountCreateItem = new MenuItem(account.getName());
+            accountCreateItem.setUserData(account);
             accountEditItem = new MenuItem(account.getName());
+            accountEditItem.setUserData(account);
             menuAccountOpenAccount.getItems().add(accountCreateItem);
             menuAccountEditAccount.getItems().add(accountEditItem);
         }
@@ -353,6 +365,9 @@ public class FXMLDocumentController implements Initializable {
             MenuItem eventSource = (MenuItem) t.getSource();
             String eventSourceId = eventSource.getId();
 
+            if (eventSourceId == null) {
+                eventSourceId = eventSource.getParentMenu().getId();
+            }
             switch (eventSourceId) {
                 case "menuFileSelectRootDirectory":
                     showRootSelectorAndChangeRoot();
@@ -362,7 +377,16 @@ public class FXMLDocumentController implements Initializable {
                     break;
                 case "menuFileSaveEmails":
                     showDirectoryChooserAndSaveEmails();
+                    break;
+                case "menuAccountOpenAccount":
+                    Account openAccount = (Account) eventSource.getUserData();
+                    changeRootByAccount(openAccount);
+                    break;
+                case "menuAccountEditAccount":
+                    Account editAccount = (Account) eventSource.getUserData();
+                    showEditAccount(editAccount);
             }
+
         }
 
         private void showRootSelectorAndChangeRoot() {
@@ -390,6 +414,25 @@ public class FXMLDocumentController implements Initializable {
             File newRootDirectory = newRootChooser.
                     showDialog(chooseDirectoryStage);
             manager.saveEmails(newRootDirectory);
+        }
+
+        private void changeRootByAccount(Account account) {
+            Folder newRootFolder;
+            newRootFolder = account.getTop();
+
+            File newRootDirectory;
+            newRootDirectory = new File(newRootFolder.getPath());
+            System.out.println("Changing root to ..." + newRootFolder.getPath());
+            fileExplorer.getSelectionModel().selectedItemProperty()
+                    .removeListener(selectedChanged);
+            manager.changeDirectory(newRootDirectory);
+
+            loadRootFolder(newRootDirectory);
+            configureFolderExplorer();
+        }
+
+        private void showEditAccount(Account account) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
     }
 

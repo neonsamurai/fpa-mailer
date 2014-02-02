@@ -6,6 +6,7 @@
 
 package de.bht.fpa.mail.s761488.applicationLogic;
 
+import de.bht.fpa.mail.s761488.model.Account;
 import de.bht.fpa.mail.s761488.model.Email;
 import de.bht.fpa.mail.s761488.model.EmailManagerIF;
 import de.bht.fpa.mail.s761488.model.Folder;
@@ -74,6 +75,31 @@ public class ApplicationLogic implements ApplicationLogicIF {
 
     public void updateEmailList(Folder folder) {
         emailManager.updateEmailList(folder);
+    }
+
+    @Override
+    public void openAccount(String name) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public List<String> getAllAccounts() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Account getAccount(String name) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public boolean saveAccount(Account account) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void updateAccount(Account account) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

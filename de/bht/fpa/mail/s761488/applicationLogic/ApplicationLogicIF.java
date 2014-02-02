@@ -1,4 +1,9 @@
+package de.bht.fpa.mail.s761488.applicationLogic;
 
+
+import de.bht.fpa.mail.s761488.model.Account;
+import de.bht.fpa.mail.s761488.model.Email;
+import de.bht.fpa.mail.s761488.model.Folder;
 import java.io.File;
 import java.util.List;
 
