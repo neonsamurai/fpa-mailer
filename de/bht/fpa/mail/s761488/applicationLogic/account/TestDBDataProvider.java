@@ -30,6 +30,7 @@ public class TestDBDataProvider {
         EntityTransaction trans = em.getTransaction();
         trans.begin();
         for (Account a : accs) {
+            em.persist(a.getTop());
             em.persist(a);
         }
         trans.commit();

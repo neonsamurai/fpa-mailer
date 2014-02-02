@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
 /**
@@ -30,6 +31,8 @@ public class Folder extends Component implements Serializable{
     private final transient ArrayList<Component> content;
     @Transient
     private transient List<Email> emails;
+    @OneToOne(mappedBy = "top")
+    private Account account;
 
     /**
      *

@@ -206,15 +206,15 @@ public class FXMLDocumentController implements Initializable {
     private void loadAccountsToMenu() {
         System.out.println("Loading Accounts...");
         // get Accounts list
-        AccountFileDAO accountDAO = new AccountFileDAO();
-        List<Account> accounts = accountDAO.getAllAccounts();
+        
+        List<String> accounts = manager.getAllAccounts();
 //        System.out.println(accounts);
         // add MenuItems with text=name
-        for (Account account : accounts) {
+        for (String account : accounts) {
             MenuItem accountCreateItem, accountEditItem;
-            accountCreateItem = new MenuItem(account.getName());
-            accountCreateItem.setUserData(account);
-            accountEditItem = new MenuItem(account.getName());
+            accountCreateItem = new MenuItem(account);
+            accountCreateItem.setUserData(manager.getAccount(account));
+            accountEditItem = new MenuItem(account);
             accountEditItem.setUserData(account);
             menuAccountOpenAccount.getItems().add(accountCreateItem);
             menuAccountEditAccount.getItems().add(accountEditItem);

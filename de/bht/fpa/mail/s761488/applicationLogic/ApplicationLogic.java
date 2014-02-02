@@ -14,6 +14,7 @@ import de.bht.fpa.mail.s761488.model.EmailManagerIF;
 import de.bht.fpa.mail.s761488.model.Folder;
 import de.bht.fpa.mail.s761488.model.FolderManagerIF;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ObservableList;
 
@@ -90,7 +91,7 @@ public class ApplicationLogic implements ApplicationLogicIF {
 
     @Override
     public List<String> getAllAccounts() {
-        List<String> accountNames = null;
+        List<String> accountNames = new ArrayList<>();
         List<Account> accounts;
         accounts = accountManager.getAllAccounts();
         
