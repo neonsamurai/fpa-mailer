@@ -12,6 +12,9 @@ package de.bht.fpa.mail.s761488.model;
 
 import java.io.File;
 import java.io.Serializable;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
 
 
 /**
@@ -21,10 +24,12 @@ import java.io.Serializable;
  * @author Siamak Haschemi, changed by Simone Strippgen
  */
 
+@Entity
 public class Account implements Serializable {
     
   private static final long serialVersionUID = -7660640539811469762L;
 
+  @Id
   private String name;
 
   private String host;
@@ -33,6 +38,7 @@ public class Account implements Serializable {
 
   private String password;
 
+  @OneToOne
   private Folder top;
   
   public Account() { 
