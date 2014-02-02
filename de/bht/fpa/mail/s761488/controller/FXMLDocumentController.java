@@ -215,7 +215,7 @@ public class FXMLDocumentController implements Initializable {
             accountCreateItem = new MenuItem(account);
             accountCreateItem.setUserData(manager.getAccount(account));
             accountEditItem = new MenuItem(account);
-            accountEditItem.setUserData(account);
+            accountEditItem.setUserData(manager.getAccount(account));
             menuAccountOpenAccount.getItems().add(accountCreateItem);
             menuAccountEditAccount.getItems().add(accountEditItem);
         }
@@ -373,6 +373,7 @@ public class FXMLDocumentController implements Initializable {
                 eventSourceId = eventSource.getParentMenu().getId();
             }
             System.out.println(eventSourceId);
+            System.out.println(eventSource);
             switch (eventSourceId) {
                 case "menuFileSelectRootDirectory":
                     showRootSelectorAndChangeRoot();
